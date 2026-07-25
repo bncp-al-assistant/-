@@ -17,7 +17,7 @@ pdf_text = ""
 for page in doc:
     pdf_text += page.get_text()
 
-st.title("🍽 BNCP AI")
+st.title("🍽 BNCP AI 비서")
 
 question = st.text_input("질문을 입력하세요.")
 
