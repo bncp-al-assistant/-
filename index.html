@@ -382,7 +382,7 @@
     <div class="response-area" id="responseArea"></div>
   </main>
 
-  <!-- 주간 식단표 모달 -->
+  <!-- 주간 식단표 모달 (제목 id 추가됨) -->
   <div class="modal-overlay" id="menuModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -526,6 +526,7 @@
     let weeklyData = [];
     let currentTabIndex = 0;
 
+    // menu.json을 불러와서 제목/탭/식단을 일괄 업데이트
     async function loadMenuData() {
       try {
         const response = await fetch('./menu.json'); 
@@ -534,6 +535,7 @@
         const data = await response.json();
         weeklyData = data.weeklyData || data;
 
+        // 1. 팝업 제목 날짜 자동 업데이트
         const titleElem = document.getElementById('menuModalTitle');
         if (data.weekRange) {
           titleElem.innerText = `주간 식단표 (${data.weekRange})`;
@@ -543,6 +545,7 @@
           titleElem.innerText = `주간 식단표 (${firstDay} ~ ${lastDay})`;
         }
 
+        // 2. 탭 및 식단 렌더링
         renderMenuTabs();
         showMealDay(currentTabIndex);
 
@@ -551,6 +554,7 @@
       }
     }
 
+    // AI 검색 기능
     async function handleSearch() {
       const inputInput = document.getElementById('userInput');
       const responseArea = document.getElementById('responseArea');
@@ -586,6 +590,7 @@
       }
     }
 
+    // 식단표 모달 제어
     function openMenuModal() {
       document.getElementById('menuModal').style.display = 'flex';
       loadMenuData();
@@ -636,6 +641,7 @@
       }
     }
 
+    // 부임자/생활안내 모달 제어
     function openGuideModal() {
       document.getElementById('guideModal').style.display = 'flex';
     }
