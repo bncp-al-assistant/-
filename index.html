@@ -382,11 +382,11 @@
     <div class="response-area" id="responseArea"></div>
   </main>
 
-  <!-- 주간 식단표 모달 -->
+  <!-- 주간 식단표 모달 (제목 id 추가됨) -->
   <div class="modal-overlay" id="menuModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>주간 식단표 (7/18 ~ 7/24)</h2>
+        <h2 id="menuModalTitle">주간 식단표</h2>
         <button class="close-btn" onclick="closeMenuModal()">&times;</button>
       </div>
       <div class="tab-bar" id="menuTabBar"></div>
@@ -466,7 +466,7 @@
               <li><strong>도서관 (1동):</strong> 평일 18:00~22:00 / 휴일·금 10:00~22:00 (1회 4박 1권)</li>
               <li><strong>이발소 (1동):</strong> 매주 금, 토 08:00~21:00 (선착순 이용, 팁 절대 금지)</li>
               <li><strong>사우나:</strong> 휴일/금요일 08:00~21:00 운영</li>
-              <li><strong>시설 문의:</strong> 운영지원팀 조우형 과장 (0780-929-1232)</li>
+              <li><strong>시설 문의:</strong> 운영지원팀 (0780-929-1232)</li>
             </ul>
           </div>
         </div>
@@ -475,7 +475,7 @@
         <div id="tab4" class="info-section" style="display:none;">
           <div class="info-card">
             <h3>🏥 캠프 Clinic (의료실)</h3>
-            <p><strong>담당자:</strong> HSE팀 김대영 대리</p>
+            <p><strong>담당자:</strong> HSE팀</p>
             <p><strong>연락처:</strong> 0780-926-2446 (내선 4327)</p>
           </div>
           <div class="info-card">
@@ -523,68 +523,38 @@
   <script>
     const BACKEND_API_URL = "https://odd-butterfly-b936.chogak1449.workers.dev/";
 
-    // 최신 주간 식단 데이터 (7/18 ~ 7/24)
-    const weeklyData = [
-      {
-        date: "토(7/18)",
-        meals: {
-          "조식": ["쌀밥 / 잡곡밥", "소고기미역국", "수제어묵볶음", "오징어젓", "우거지나물", "배추김치", "야채샐러드/토마토", "모닝빵/잼/버터", "시리얼/우유/커피"],
-          "중식": ["쌀밥", "평양냉면 (특식)", "닭무침", "녹두빈대떡", "양파고추장아찌", "배추김치", "야채스틱/쌈장", "과일/음료"],
-          "석식": ["쌀밥", "바지락냉이된장국", "버섯불고기", "더덕무침", "상추겉절이", "배추김치", "야채스틱/쌈장", "과일/음료"]
-        }
-      },
-      {
-        date: "일(7/19)",
-        meals: {
-          "조식": ["쌀밥 / 잡곡밥", "배추속대국", "브로콜리새우볶음", "연근조림", "취나물", "배추김치", "야채샐러드/토마토", "모닝빵/잼/버터", "시리얼/우유/커피"],
-          "중식": ["카레라이스 (특식)", "미소된장국", "치즈돈까스", "마카로니샐러드", "오이피클", "배추김치", "야채스틱/쌈장", "과일/음료"],
-          "석식": ["쌀밥", "해물수제비 (특식)", "유린기", "단무지무침", "겉절이", "야채스틱/쌈장", "과일/음료"]
-        }
-      },
-      {
-        date: "월(7/20)",
-        meals: {
-          "조식": ["날치알비빔밥 (특식)", "안동국시", "겉절이", "야채샐러드/토마토", "모닝빵/잼/버터", "시리얼/우유/커피"],
-          "중식": ["쌀밥 / 잡곡밥", "등갈비김치찌개", "계란말이", "잡채해물완자", "오이사박이", "배추김치", "야채스틱/쌈장", "과일/음료"],
-          "석식": ["쌀밥", "고추장찌개", "족발 / 새우젓", "고추튀김", "무말랭이무침", "배추김치", "야채스틱/쌈장", "과일/음료"]
-        }
-      },
-      {
-        date: "화(7/21)",
-        meals: {
-          "조식": ["쌀밥 / 잡곡밥", "소고기무국", "감자채볶음", "명란젓", "돌자반볶음", "배추김치", "야채샐러드/토마토", "모닝빵/잼/버터", "시리얼/우유/커피"],
-          "중식": ["쌀밥 / 잡곡밥", "맑은콩비지찌개", "오삼불고기", "양배추쌈", "무생채", "배추김치", "야채스틱/쌈장", "과일/음료"],
-          "석식": ["꼬마김밥 (특식)", "오뎅탕", "떡볶이", "김말이/오징어튀김", "단무지", "야채스틱/쌈장", "과일/음료"]
-        }
-      },
-      {
-        date: "수(7/22)",
-        meals: {
-          "조식": ["쌀밥 / 잡곡밥", "감자국", "임연수구이", "건새우볶음", "명이나물", "배추김치", "야채샐러드/토마토", "모닝빵/잼/버터", "시리얼/우유/커피"],
-          "중식": ["쌀밥", "초계국수 (특식)", "바지락호박채전", "고추튀김", "양파고추장아찌", "배추김치", "야채스틱/쌈장", "과일/음료"],
-          "석식": ["쌀밥", "장터국밥", "어리굴젓", "도토리묵무침", "곤드레나물", "배추김치", "야채스틱/쌈장", "과일/음료"]
-        }
-      },
-      {
-        date: "목(7/23)",
-        meals: {
-          "조식": ["떡라면 (특식)", "배추김치", "야채샐러드/토마토", "모닝빵/잼/버터", "시리얼/우유/커피"],
-          "중식": ["쌀밥 / 잡곡밥", "동태탕", "스팸야채전", "멸치고추볶음", "파래무침", "배추김치", "야채스틱/쌈장", "과일/음료"],
-          "석식": ["쌀밥 / 바게트", "토마토미트파스타 (특식)", "칵테일새우샐러드", "오이피클", "배추김치", "야채스틱/쌈장", "과일/음료"]
-        }
-      },
-      {
-        date: "금(7/24)",
-        meals: {
-          "조식": ["쌀밥 / 잡곡밥", "황태해장국", "명엽채볶음", "고사리나물", "깻잎나물", "배추김치", "야채샐러드/토마토", "모닝빵/잼/버터", "시리얼/우유/커피"],
-          "중식": ["쌀밥", "유니짜장면 (특식)", "탕수육", "단무지", "배추김치", "야채스틱/쌈장", "과일/음료"],
-          "석식": ["퀘사디아 (특식)", "오이피클", "콜라, 사이다", "야채스틱/쌈장", "과일/음료"]
-        }
-      }
-    ];
-
+    let weeklyData = [];
     let currentTabIndex = 0;
 
+    // menu.json을 불러와서 제목/탭/식단을 일괄 업데이트
+    async function loadMenuData() {
+      try {
+        const response = await fetch('./menu.json'); 
+        if (!response.ok) throw new Error("식단 데이터를 불러올 수 없습니다.");
+        
+        const data = await response.json();
+        weeklyData = data.weeklyData || data;
+
+        // 1. 팝업 제목 날짜 자동 업데이트
+        const titleElem = document.getElementById('menuModalTitle');
+        if (data.weekRange) {
+          titleElem.innerText = `주간 식단표 (${data.weekRange})`;
+        } else if (weeklyData.length > 0) {
+          const firstDay = weeklyData[0].date;
+          const lastDay = weeklyData[weeklyData.length - 1].date;
+          titleElem.innerText = `주간 식단표 (${firstDay} ~ ${lastDay})`;
+        }
+
+        // 2. 탭 및 식단 렌더링
+        renderMenuTabs();
+        showMealDay(currentTabIndex);
+
+      } catch (error) {
+        console.error("식단 데이터 로딩 실패:", error);
+      }
+    }
+
+    // AI 검색 기능
     async function handleSearch() {
       const inputInput = document.getElementById('userInput');
       const responseArea = document.getElementById('responseArea');
@@ -623,8 +593,7 @@
     // 식단표 모달 제어
     function openMenuModal() {
       document.getElementById('menuModal').style.display = 'flex';
-      renderMenuTabs();
-      showMealDay(currentTabIndex);
+      loadMenuData();
     }
 
     function closeMenuModal() {
@@ -634,6 +603,8 @@
     function renderMenuTabs() {
       const tabBar = document.getElementById('menuTabBar');
       tabBar.innerHTML = '';
+
+      if (!weeklyData || weeklyData.length === 0) return;
 
       weeklyData.forEach((day, index) => {
         const btn = document.createElement('button');
@@ -650,8 +621,11 @@
 
     function showMealDay(index) {
       const mealGrid = document.getElementById('mealGrid');
-      const meals = weeklyData[index].meals;
       mealGrid.innerHTML = '';
+
+      if (!weeklyData || !weeklyData[index]) return;
+
+      const meals = weeklyData[index].meals;
 
       for (const [time, items] of Object.entries(meals)) {
         const card = document.createElement('div');
