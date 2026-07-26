@@ -19,39 +19,3 @@
     }
   ]
 }
-3. 파일 없이 HTML 내부에 직접 데이터를 넣고 싶다면?
-별도의 menu.json 파일 없이 HTML 코드만으로 식단표를 작동시키려면, <script> 영역의 loadMenuData() 함수를 아래와 같이 자체 데이터 로드 방식으로 수정하시면 됩니다.
-
-JavaScript
-// 기존 loadMenuData() 함수를 아래 내용으로 교체
-
-function loadMenuData() {
-  // 별도 json 파일 대신 JS 내부 변수 사용
-  const data = {
-    "weekRange": "주간 식단 안내",
-    "weeklyData": [
-      {
-        "date": "월요일",
-        "meals": {
-          "조식": ["쌀밥", "콩나물국", "제육볶음", "배추김치"],
-          "중식": ["현미밥", "된장찌개", "돈까스 (특식)", "샐러드"],
-          "석식": ["볶음밥", "짬뽕국", "군만두", "단무지"]
-        }
-      },
-      {
-        "date": "화요일",
-        "meals": {
-          "조식": ["잡곡밥", "북어국", "계란말이", "김치"],
-          "중식": ["비빔밥", "장국", "떡갈비구이", "깍두기"],
-          "석식": ["쌀밥", "순두부찌개", "오징어볶음", "김치"]
-        }
-      }
-    ]
-  };
-
-  weeklyData = data.weeklyData;
-  document.getElementById('menuModalTitle').innerText = `주간 식단표 (${data.weekRange})`;
-  
-  renderMenuTabs();
-  showMealDay(currentTabIndex);
-}
