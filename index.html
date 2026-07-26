@@ -17,7 +17,7 @@
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      min-height: 100vh;
     }
 
     header {
@@ -34,6 +34,7 @@
       text-decoration: none;
       cursor: pointer;
       font-weight: 500;
+      transition: color 0.2s;
     }
 
     header a:hover {
@@ -52,6 +53,7 @@
       justify-content: center;
       font-weight: bold;
       font-size: 13px;
+      user-select: none;
     }
 
     main {
@@ -60,8 +62,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      margin-top: -30px;
-      padding: 0 16px;
+      padding: 40px 16px;
     }
 
     .logo {
@@ -88,13 +89,13 @@
       display: flex;
       align-items: center;
       padding: 0 20px;
-      transition: background-color 0.2s, box-shadow 0.2s;
+      transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
     }
 
     .search-box:hover, .search-box:focus-within {
       background-color: #303134;
-      border-color: transparent;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      border-color: #8ab4f8;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     }
 
     .search-box input {
@@ -156,6 +157,13 @@
       line-height: 1.6;
       font-size: 15px;
       white-space: pre-wrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Modals */
@@ -168,6 +176,7 @@
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      backdrop-filter: blur(3px);
     }
 
     .modal-content {
@@ -179,7 +188,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
     }
 
     .modal-header {
@@ -201,6 +210,7 @@
       color: #9aa0a6;
       font-size: 26px;
       cursor: pointer;
+      line-height: 1;
     }
 
     .close-btn:hover {
@@ -212,11 +222,12 @@
       background-color: #202124;
       overflow-x: auto;
       border-bottom: 1px solid #3c4043;
+      scrollbar-width: thin;
     }
 
     .tab-btn {
       flex: 1;
-      min-width: 90px;
+      min-width: 100px;
       padding: 12px 10px;
       background: none;
       border: none;
@@ -225,7 +236,8 @@
       font-weight: 500;
       cursor: pointer;
       white-space: nowrap;
-      border-bottom: 2px solid transparent;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
     }
 
     .tab-btn.active {
@@ -325,6 +337,7 @@
       background-color: #171717;
       color: #9aa0a6;
       font-size: 13px;
+      margin-top: auto;
     }
 
     .footer-top {
@@ -348,6 +361,7 @@
     .footer-links a {
       color: #9aa0a6;
       text-decoration: none;
+      cursor: pointer;
     }
 
     .footer-links a:hover {
@@ -383,7 +397,7 @@
   </main>
 
   <!-- 주간 식단표 모달 -->
-  <div class="modal-overlay" id="menuModal">
+  <div class="modal-overlay" id="menuModal" onclick="handleModalOverlayClick(event, 'menuModal')">
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="menuModalTitle">주간 식단표</h2>
@@ -400,7 +414,7 @@
   </div>
 
   <!-- 부임자 및 캠프 생활 안내 모달 -->
-  <div class="modal-overlay" id="guideModal">
+  <div class="modal-overlay" id="guideModal" onclick="handleModalOverlayClick(event, 'guideModal')">
     <div class="modal-content">
       <div class="modal-header">
         <h2>BNCP 캠프 생활 및 부임자 안내</h2>
@@ -523,32 +537,60 @@
   <script>
     const BACKEND_API_URL = "https://odd-butterfly-b936.chogak1449.workers.dev/";
 
+    // 백엔드 연동 불가 시 표시할 셈플/기본 식단 데이터
+    const fallbackMenuData = {
+      weekRange: "안내 식단 예시",
+      weeklyData: [
+        {
+          date: "월요일",
+          meals: {
+            "조식 (06:00~07:00)": ["쌀밥", "콩나물국", "제육볶음", "포기김치"],
+            "중식 (11:30~12:30)": ["잡곡밥", "김치찌개", "돈까스&소스", "깍두기", "음료"],
+            "석식 (17:30~18:30)": ["볶음밥", "계란파국", "닭강정 (특식)", "단무지"]
+          }
+        },
+        {
+          date: "화요일",
+          meals: {
+            "조식 (06:00~07:00)": ["쌀밥", "시래기국", "계란말이", "열무김치"],
+            "중식 (11:30~12:30)": ["비빔밥", "콩나물냉국", "떡갈비구이", "포기김치"],
+            "석식 (17:30~18:30)": ["쌀밥", "부대찌개", "생선구이", "총각김치"]
+          }
+        }
+      ]
+    };
+
     let weeklyData = [];
     let currentTabIndex = 0;
 
+    // 식단 데이터 수신 로직 (JSON 로드 실패 시 대체 데이터 활용)
     async function loadMenuData() {
       try {
         const response = await fetch('./menu.json'); 
-        if (!response.ok) throw new Error("식단 데이터를 불러올 수 없습니다.");
+        if (!response.ok) throw new Error("식단 파일(menu.json)을 찾을 수 없습니다.");
         
         const data = await response.json();
-        weeklyData = data.weeklyData || data;
-
-        const titleElem = document.getElementById('menuModalTitle');
-        if (data.weekRange) {
-          titleElem.innerText = `주간 식단표 (${data.weekRange})`;
-        } else if (weeklyData.length > 0) {
-          const firstDay = weeklyData[0].date;
-          const lastDay = weeklyData[weeklyData.length - 1].date;
-          titleElem.innerText = `주간 식단표 (${firstDay} ~ ${lastDay})`;
-        }
-
-        renderMenuTabs();
-        showMealDay(currentTabIndex);
-
+        setupMenuData(data);
       } catch (error) {
-        console.error("식단 데이터 로딩 실패:", error);
+        console.warn("식단 데이터 로딩 실패, 기본 예시 데이터를 표시합니다:", error);
+        setupMenuData(fallbackMenuData);
       }
+    }
+
+    function setupMenuData(data) {
+      weeklyData = data.weeklyData || data;
+      const titleElem = document.getElementById('menuModalTitle');
+
+      if (data.weekRange) {
+        titleElem.innerText = `주간 식단표 (${data.weekRange})`;
+      } else if (weeklyData.length > 0) {
+        const firstDay = weeklyData[0].date;
+        const lastDay = weeklyData[weeklyData.length - 1].date;
+        titleElem.innerText = `주간 식단표 (${firstDay} ~ ${lastDay})`;
+      }
+
+      renderMenuTabs();
+      showMealDay(currentTabIndex);
     }
 
     async function handleSearch() {
@@ -575,15 +617,28 @@
         const data = await response.json();
         const aiReply = data.reply || data.response || "답변을 수신했습니다.";
 
-        responseArea.innerHTML = "<strong>🤖 AI 비서 답변:</strong><br><br>" + aiReply;
+        responseArea.innerHTML = "<strong>🤖 AI 비서 답변:</strong><br><br>" + escapeHTML(aiReply);
 
       } catch (error) {
         console.error("통신 에러:", error);
-        responseArea.innerHTML = "⚠️ 답변을 불러오는 중 오류가 발생했습니다.<br>Cloudflare Worker 상태 및 API URL 설정을 확인해 주세요.";
+        responseArea.innerHTML = "⚠️ 답변을 불러오는 중 오류가 발생했습니다.<br>네트워크 상태 또는 Cloudflare Worker 연동 설정을 확인해주세요.";
       } finally {
         inputInput.disabled = false;
         inputInput.focus();
       }
+    }
+
+    // HTML 특수문자 이스케이프 처리
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
     }
 
     function openMenuModal() {
@@ -628,10 +683,10 @@
 
         let listHTML = items.map(item => {
           const isHighlight = item.includes('(특식)');
-          return `<li class="${isHighlight ? 'highlight' : ''}">• ${item}</li>`;
+          return `<li class="${isHighlight ? 'highlight' : ''}">• ${escapeHTML(item)}</li>`;
         }).join('');
 
-        card.innerHTML = `<h3>${time}</h3><ul>${listHTML}</ul>`;
+        card.innerHTML = `<h3>${escapeHTML(time)}</h3><ul>${listHTML}</ul>`;
         mealGrid.appendChild(card);
       }
     }
@@ -654,6 +709,21 @@
       document.getElementById(tabId).style.display = 'flex';
       element.classList.add('active');
     }
+
+    // 모달 바깥 영역 클릭시 닫기
+    function handleModalOverlayClick(event, modalId) {
+      if (event.target.id === modalId) {
+        document.getElementById(modalId).style.display = 'none';
+      }
+    }
+
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeMenuModal();
+        closeGuideModal();
+      }
+    });
   </script>
 </body>
 </html>
