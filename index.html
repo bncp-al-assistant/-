@@ -578,20 +578,22 @@
     }
 
     function setupMenuData(data) {
-      weeklyData = data.weeklyData || data;
-      const titleElem = document.getElementById('menuModalTitle');
+  weeklyData = data.weeklyData || data;
+  const titleElem = document.getElementById('menuModalTitle');
 
-      if (data.weekRange) {
-        titleElem.innerText = `주간 식단표 (${data.weekRange})`;
-      } else if (weeklyData.length > 0) {
-        const firstDay = weeklyData[0].date;
-        const lastDay = weeklyData[weeklyData.length - 1].date;
-        titleElem.innerText = `주간 식단표 (${firstDay} ~ ${lastDay})`;
-      }
+  // data.weekRange가 설정되어 있다면 최우선 적용
+  if (data.weekRange) {
+    titleElem.innerText = `주간 식단표 (${data.weekRange})`;
+  } else if (weeklyData.length > 0) {
+    // 배열의 첫 번째 날짜와 실제 마지막 날짜를 자동으로 읽어옵니다.
+    const firstDay = weeklyData[0].date;
+    const lastDay = weeklyData[weeklyData.length - 1].date;
+    titleElem.innerText = `주간 식단표 (${firstDay} ~ ${lastDay})`;
+  }
 
-      renderMenuTabs();
-      showMealDay(currentTabIndex);
-    }
+  renderMenuTabs();
+  showMealDay(currentTabIndex);
+}
 
     async function handleSearch() {
       const inputInput = document.getElementById('userInput');
