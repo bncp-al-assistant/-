@@ -566,7 +566,7 @@
     // 식단 데이터 수신 로직 (JSON 로드 실패 시 대체 데이터 활용)
     async function loadMenuData() {
       try {
-        const response = await fetch('./menu.json'); 
+        const response = await fetch('./weeklyMenu.json');
         if (!response.ok) throw new Error("식단 파일(menu.json)을 찾을 수 없습니다.");
         
         const data = await response.json();
