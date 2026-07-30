@@ -565,35 +565,57 @@
 
     // 식단 데이터 수신 로직 (JSON 로드 실패 시 대체 데이터 활용)
     async function loadMenuData() {
-      try {
-        const response = await fetch('./weeklyMenu.json');
-        if (!response.ok) throw new Error("식단 파일(menu.json)을 찾을 수 없습니다.");
-        
+
+    try {
+
+        const response = await fetch("weeklyMenu.json?v=" + Date.now(), {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error("weeklyMenu.json을 찾을 수 없습니다.");
+        }
+
         const data = await response.json();
+
+        console.log("식단 JSON", data);
+
         setupMenuData(data);
-      } catch (error) {
-        console.warn("식단 데이터 로딩 실패, 기본 예시 데이터를 표시합니다:", error);
+
+    } catch (err) {
+
+        console.error(err);
+
         setupMenuData(fallbackMenuData);
-      }
+
     }
 
-    function setupMenuData(data) {
-  weeklyData = data.weeklyData || data;
-  const titleElem = document.getElementById('menuModalTitle');
-
-  // data.weekRange가 설정되어 있다면 최우선 적용
-  if (data.weekRange) {
-    titleElem.innerText = `주간 식단표 (${data.weekRange})`;
-  } else if (weeklyData.length > 0) {
-    // 배열의 첫 번째 날짜와 실제 마지막 날짜를 자동으로 읽어옵니다.
-    const firstDay = weeklyData[0].date;
-    const lastDay = weeklyData[weeklyData.length - 1].date;
-    titleElem.innerText = `주간 식단표 (${firstDay} ~ ${lastDay})`;
-  }
-
-  renderMenuTabs();
-  showMealDay(currentTabIndex);
 }
+
+function setupMenuData(data){
+
+    weeklyData=data.weeklyData;
+
+    if(!weeklyData) weeklyData=[];
+
+    const title=document.getElementById("menuModalTitle");
+
+    if(data.weekRange){
+
+        title.innerHTML="주간 식단표 ("+data.weekRange+")";
+
+    }else{
+
+        title.innerHTML="주간 식단표";
+
+    }
+
+    currentTabIndex=0;
+
+    renderMenuTabs();
+
+    showMealDay(0);
+
 
     async function handleSearch() {
       const inputInput = document.getElementById('userInput');
@@ -643,10 +665,13 @@
       );
     }
 
-    function openMenuModal() {
-      document.getElementById('menuModal').style.display = 'flex';
-      loadMenuData();
-    }
+    async function openMenuModal(){
+
+    document.getElementById("menuModal").style.display="flex";
+
+    await loadMenuData();
+
+}
 
     function closeMenuModal() {
       document.getElementById('menuModal').style.display = 'none';
@@ -684,7 +709,13 @@
         card.className = 'meal-card';
 
         let listHTML = items.map(item => {
-          const isHighlight = item.includes('(특식)');
+          const isHighlight =
+item.includes("특식") ||
+item.includes("삼계탕") ||
+item.includes("피자") ||
+item.includes("돈가스") ||
+item.includes("치킨") ||
+item.includes("파스타");
           return `<li class="${isHighlight ? 'highlight' : ''}">• ${escapeHTML(item)}</li>`;
         }).join('');
 
