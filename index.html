@@ -334,6 +334,73 @@
       color: #e8eaed;
     }
 
+    /* Welfare Cards */
+    .welfare-search {
+      width: 100%;
+      padding: 10px 14px;
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 8px;
+      color: #e8eaed;
+      font-size: 14px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .welfare-search:focus {
+      border-color: #8ab4f8;
+    }
+
+    .welfare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .welfare-card {
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .welfare-card .no {
+      display: inline-block;
+      background-color: #ff6b00;
+      color: #fff;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .welfare-card h3 {
+      color: #8ab4f8;
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .welfare-card .target {
+      font-size: 12px;
+      color: #9aa0a6;
+      margin-bottom: 8px;
+    }
+
+    .welfare-card .desc {
+      font-size: 13px;
+      color: #bdc1c6;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .welfare-card .contact {
+      font-size: 12px;
+      color: #9aa0a6;
+      border-top: 1px solid #3c4043;
+      padding-top: 8px;
+    }
+
     /* Form Styles for Reservation */
     .form-group {
       margin-bottom: 16px;
@@ -550,39 +617,22 @@
     </div>
   </div>
 
-  <!-- 3. 회사 복리후생 안내 모달 -->
+  <!-- 3. 회사 복리후생 안내 모달 (전사 21개 항목 전체) -->
   <div class="modal-overlay" id="welfareModal" onclick="handleModalOverlayClick(event, 'welfareModal')">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>한화 건설부문 해외근무 복리후생</h2>
+        <h2>㈜한화 건설부문 복리후생 (전체 21개 항목)</h2>
         <button class="close-btn" onclick="closeModal('welfareModal')">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="info-section">
-          <div class="info-card">
-            <h3>❤️ 의료 및 건강지원</h3>
-            <ul>
-              <li>캠프 내 24시간 의무실 운영 및 상주 의료진 긴급 대응 지원</li>
-              <li>해외 응급 의료 이송 서비스 (International SOS) 연계</li>
-              <li>연 1회 종합건강검진 지원 및 독감 예방접종 무료 실시</li>
-            </ul>
-          </div>
-          <div class="info-card">
-            <h3>✈️ 항공권 및 휴가 지원</h3>
-            <ul>
-              <li>정기휴가 왕복 항공권 지급 (연 3회 / 3.5개월 주간)</li>
-              <li>경조사 발생 시 특별 경조휴가 및 긴급 항공권 지원</li>
-            </ul>
-          </div>
-          <div class="info-card">
-            <h3>🌐 생활 및 통신 지원</h3>
-            <ul>
-              <li>숙소 및 공용 구역 고속 Wi-Fi 무상 제공</li>
-              <li>VoIP 한국 전용 통신망 지원으로 원활한 국내 연락 환경 제공</li>
-              <li>세탁, 청소 및 3식(한식 뷔페) 제공</li>
-            </ul>
-          </div>
-        </div>
+        <input
+          type="text"
+          class="welfare-search"
+          id="welfareSearchInput"
+          placeholder="항목명 또는 담당자로 검색 (예: 학자금, 김민석)"
+          oninput="filterWelfareCards()"
+        >
+        <div class="welfare-grid" id="welfareGrid"></div>
       </div>
     </div>
   </div>
@@ -668,6 +718,30 @@
       ]
     };
 
+    // 복리후생 데이터는 welfare.json에서 fetch로 불러옴 (welfare_manager.py와 내용 동일하게 유지)
+    let welfareData = [];
+
+    // welfare.json 로드 실패 시 사용할 최소 폴백 데이터
+    const fallbackWelfareData = {
+      items: [
+        { no: "01", title: "건강검진", target: "전 임직원 및 배우자", description: "임원(정밀검진), 직원(종합검진) 지원 / 순천향대 서울병원 등 지정병원 이용", contact: "김민석 사원 · 02-729-5757 · ms085@hanwha.com" },
+        { no: "02", title: "경조휴가 및 경조금", target: "전 임직원", description: "본인/자녀 결혼, 출산, 본인/가족 사망 등 경조금, 경조휴가, 화환, 장례용품 지원", contact: "박성준 사원 · 010-7343-0634 · psj0523@hanwha.com" },
+        { no: "-", title: "전체 항목 로드 실패", target: "-", description: "welfare.json을 불러오지 못했습니다. 네트워크 상태를 확인하거나 담당자에게 문의해주세요.", contact: "인사지원팀" }
+      ]
+    };
+
+    async function loadWelfareData() {
+      try {
+        const response = await fetch("./welfare.json?v=" + Date.now(), { cache: "no-store" });
+        if (!response.ok) throw new Error("welfare.json을 찾을 수 없습니다.");
+        const data = await response.json();
+        welfareData = data.items || [];
+      } catch (err) {
+        console.error(err);
+        welfareData = fallbackWelfareData.items;
+      }
+    }
+
     let weeklyData = [];
     let currentTabIndex = 0;
 
@@ -751,8 +825,12 @@
       document.getElementById('guideModal').style.display = 'flex';
     }
 
-    function openWelfareModal() {
+    async function openWelfareModal() {
       document.getElementById('welfareModal').style.display = 'flex';
+      document.getElementById('welfareSearchInput').value = '';
+      document.getElementById('welfareGrid').innerHTML = '<p style="color:#9aa0a6; grid-column: 1 / -1;">불러오는 중...</p>';
+      await loadWelfareData();
+      renderWelfareCards(welfareData);
     }
 
     function openFacilityModal() {
@@ -813,6 +891,48 @@
 
       document.getElementById(tabId).style.display = 'flex';
       element.classList.add('active');
+    }
+
+    // 복리후생 21개 항목 카드 렌더링
+    function renderWelfareCards(items) {
+      const grid = document.getElementById('welfareGrid');
+      grid.innerHTML = '';
+
+      if (!items || items.length === 0) {
+        grid.innerHTML = '<p style="color:#9aa0a6; grid-column: 1 / -1;">검색 결과가 없습니다.</p>';
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'welfare-card';
+        card.innerHTML = `
+          <span class="no">${escapeHTML(item.no)}</span>
+          <h3>${escapeHTML(item.title)}</h3>
+          <div class="target">👥 ${escapeHTML(item.target)}</div>
+          <div class="desc">${escapeHTML(item.description)}</div>
+          <div class="contact">📞 ${escapeHTML(item.contact)}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 복리후생 검색/필터링 (제목, 담당자, 설명 기준)
+    function filterWelfareCards() {
+      const keyword = document.getElementById('welfareSearchInput').value.trim().toLowerCase();
+
+      if (!keyword) {
+        renderWelfareCards(welfareData);
+        return;
+      }
+
+      const filtered = welfareData.filter(item =>
+        item.title.toLowerCase().includes(keyword) ||
+        item.contact.toLowerCase().includes(keyword) ||
+        item.description.toLowerCase().includes(keyword)
+      );
+
+      renderWelfareCards(filtered);
     }
 
     function handleFacilitySubmit(e) {
