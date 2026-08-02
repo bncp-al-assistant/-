@@ -1,7 +1,6 @@
- JSON
-{
-  "updatedAt": "2026-08-02",
-  "items": [
+   {
+     "updatedAt": "2026-08-02",
+     "items": [
     {
       "no": "01",
       "title": "건강검진",
