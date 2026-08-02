@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -25,7 +26,7 @@
       justify-content: flex-end;
       align-items: center;
       padding: 16px 24px;
-      gap: 20px;
+      gap: 16px;
       font-size: 14px;
     }
 
@@ -111,16 +112,17 @@
     .btn-group {
       margin-top: 24px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
       justify-content: center;
+      max-width: 700px;
     }
 
     .btn {
       background-color: #303134;
       border: 1px solid #303134;
       color: #e8eaed;
-      padding: 10px 20px;
+      padding: 10px 18px;
       font-size: 14px;
       border-radius: 6px;
       cursor: pointer;
@@ -333,6 +335,33 @@
       color: #e8eaed;
     }
 
+    /* Form Styles for Reservation */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      color: #bdc1c6;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 6px;
+      color: #e8eaed;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: #8ab4f8;
+    }
+
     footer {
       background-color: #171717;
       color: #9aa0a6;
@@ -372,8 +401,10 @@
 <body>
 
   <header>
-    <a onclick="openGuideModal()">부임자/캠프 안내</a>
+    <a onclick="openGuideModal()">캠프/업무 안내</a>
     <a onclick="openMenuModal()">주간 식단표</a>
+    <a onclick="openWelfareModal()">회사 복리후생</a>
+    <a onclick="openFacilityModal()">시설물 예약</a>
     <div class="profile-icon">한화</div>
   </header>
 
@@ -389,19 +420,21 @@
 
     <div class="btn-group">
       <button class="btn btn-primary" onclick="handleSearch()">AI 답변 요청</button>
-      <button class="btn" onclick="openMenuModal()">주간 식단표 보기</button>
-      <button class="btn" onclick="openGuideModal()">부임자/캠프 생활안내</button>
+      <button class="btn" onclick="openMenuModal()">주간 식단표</button>
+      <button class="btn" onclick="openGuideModal()">캠프 생활/업무 안내</button>
+      <button class="btn" onclick="openWelfareModal()">회사 복리후생</button>
+      <button class="btn" onclick="openFacilityModal()">시설물 예약</button>
     </div>
 
     <div class="response-area" id="responseArea"></div>
   </main>
 
-  <!-- 주간 식단표 모달 -->
+  <!-- 1. 주간 식단표 모달 -->
   <div class="modal-overlay" id="menuModal" onclick="handleModalOverlayClick(event, 'menuModal')">
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="menuModalTitle">주간 식단표</h2>
-        <button class="close-btn" onclick="closeMenuModal()">&times;</button>
+        <button class="close-btn" onclick="closeModal('menuModal')">&times;</button>
       </div>
       <div class="tab-bar" id="menuTabBar"></div>
       <div class="modal-body">
@@ -413,12 +446,12 @@
     </div>
   </div>
 
-  <!-- 부임자 및 캠프 생활 안내 모달 -->
+  <!-- 2. 부임자 및 캠프 생활/업무 안내 모달 -->
   <div class="modal-overlay" id="guideModal" onclick="handleModalOverlayClick(event, 'guideModal')">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>BNCP 캠프 생활 및 부임자 안내</h2>
-        <button class="close-btn" onclick="closeGuideModal()">&times;</button>
+        <h2>BNCP 캠프 생활 및 업무 안내</h2>
+        <button class="close-btn" onclick="closeModal('guideModal')">&times;</button>
       </div>
       <div class="tab-bar">
         <button class="tab-btn active" onclick="showGuideTab('tab1', this)">식당 이용</button>
@@ -518,6 +551,81 @@
     </div>
   </div>
 
+  <!-- 3. 회사 복리후생 안내 모달 -->
+  <div class="modal-overlay" id="welfareModal" onclick="handleModalOverlayClick(event, 'welfareModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>한화 건설부문 해외근무 복리후생</h2>
+        <button class="close-btn" onclick="closeModal('welfareModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-section">
+          <div class="info-card">
+            <h3>❤️ 의료 및 건강지원</h3>
+            <ul>
+              <li>캠프 내 24시간 의무실 운영 및 상주 의료진 긴급 대응 지원</li>
+              <li>해외 응급 의료 이송 서비스 (International SOS) 연계</li>
+              <li>연 1회 종합건강검진 지원 및 독감 예방접종 무료 실시</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h3>✈️ 항공권 및 휴가 지원</h3>
+            <ul>
+              <li>정기휴가 왕복 항공권 지급 (연 3회 / 3.5개월 주간)</li>
+              <li>경조사 발생 시 특별 경조휴가 및 긴급 항공권 지원</li>
+            </ul>
+          </div>
+          <div class="info-card">
+            <h3>🌐 생활 및 통신 지원</h3>
+            <ul>
+              <li>숙소 및 공용 구역 고속 Wi-Fi 무상 제공</li>
+              <li>VoIP 한국 전용 통신망 지원으로 원활한 국내 연락 환경 제공</li>
+              <li>세탁, 청소 및 3식(한식 뷔페) 제공</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 시설물 예약 모달 -->
+  <div class="modal-overlay" id="facilityModal" onclick="handleModalOverlayClick(event, 'facilityModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>캠프 시설물 예약 신청</h2>
+        <button class="close-btn" onclick="closeModal('facilityModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="facilityForm" onsubmit="handleFacilitySubmit(event)">
+          <div class="form-group">
+            <label for="facilityType">예약 대상 시설</label>
+            <select id="facilityType" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="스크린골프 1호실">스크린골프 1호실 (1동)</option>
+              <option value="스크린골프 2호실">스크린골프 2호실 (1동)</option>
+              <option value="실내 테니스장">실내 테니스장</option>
+              <option value="대회의실">대회의실 (오피스 1동)</option>
+              <option value="탁구장 / 당구장">탁구장 / 당구장</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="resDate">예약 일자 및 시간</label>
+            <input type="datetime-local" id="resDate" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="userName">신청자 성명 및 소속</label>
+            <input type="text" id="userName" class="form-control" placeholder="예: 홍길동 매니저 (운영지원팀)" required>
+          </div>
+          <div class="form-group">
+            <label for="userPurpose">사용 목적 및 인원</label>
+            <input type="text" id="userPurpose" class="form-control" placeholder="예: 부서 단합 운동 / 4명" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">예약 신청하기</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <div class="footer-top">
       <span>(주)한화 건설부문 - Bismayah New City Project (BNCP)</span>
@@ -526,7 +634,8 @@
       <div class="footer-links">
         <a onclick="openGuideModal()">캠프 안내서</a>
         <a onclick="openMenuModal()">식단표</a>
-        <a href="#">운영지원팀 문의</a>
+        <a onclick="openWelfareModal()">복리후생</a>
+        <a onclick="openFacilityModal()">시설물 예약</a>
       </div>
       <div>
         <span>Camp Service Center</span>
@@ -537,7 +646,7 @@
   <script>
     const BACKEND_API_URL = "https://odd-butterfly-b936.chogak1449.workers.dev/";
 
-    // 백엔드 연동 불가 시 표시할 셈플/기본 식단 데이터
+    // 대체 기본 식단 데이터
     const fallbackMenuData = {
       weekRange: "안내 식단 예시",
       weeklyData: [
@@ -563,59 +672,28 @@
     let weeklyData = [];
     let currentTabIndex = 0;
 
-    // 식단 데이터 수신 로직 (JSON 로드 실패 시 대체 데이터 활용)
+    // 식단 데이터 수신 로직
     async function loadMenuData() {
-
-    try {
-
-        const response = await fetch("./weeklyMenu.json?v=" + Date.now(), {
-    cache: "no-store"
-});
-
-        if (!response.ok) {
-            throw new Error("weeklyMenu.json을 찾을 수 없습니다.");
-        }
-
+      try {
+        const response = await fetch("./weeklyMenu.json?v=" + Date.now(), { cache: "no-store" });
+        if (!response.ok) throw new Error("weeklyMenu.json을 찾을 수 없습니다.");
         const data = await response.json();
-
-        console.log("식단 JSON", data);
-
         setupMenuData(data);
-
-    } catch (err) {
-
+      } catch (err) {
         console.error(err);
-
         setupMenuData(fallbackMenuData);
-
+      }
     }
 
-}
-
-function setupMenuData(data){
-
-    weeklyData=data.weeklyData;
-
-    if(!weeklyData) weeklyData=[];
-
-    const title=document.getElementById("menuModalTitle");
-
-    if(data.weekRange){
-
-        title.innerHTML="주간 식단표 ("+data.weekRange+")";
-
-    }else{
-
-        title.innerHTML="주간 식단표";
-
+    function setupMenuData(data) {
+      weeklyData = data.weeklyData || [];
+      const title = document.getElementById("menuModalTitle");
+      title.innerHTML = data.weekRange ? `주간 식단표 (${data.weekRange})` : "주간 식단표";
+      
+      currentTabIndex = 0;
+      renderMenuTabs();
+      showMealDay(0);
     }
-
-    currentTabIndex=0;
-
-    renderMenuTabs();
-
-    showMealDay(0);
-
 
     async function handleSearch() {
       const inputInput = document.getElementById('userInput');
@@ -652,7 +730,6 @@ function setupMenuData(data){
       }
     }
 
-    // HTML 특수문자 이스케이프 처리
     function escapeHTML(str) {
       return str.replace(/[&<>'"]/g, 
         tag => ({
@@ -665,16 +742,26 @@ function setupMenuData(data){
       );
     }
 
+    // Modal Control Functions
     async function openMenuModal(){
+      document.getElementById("menuModal").style.display = "flex";
+      await loadMenuData();
+    }
 
-    document.getElementById("menuModal").style.display="flex";
+    function openGuideModal() {
+      document.getElementById('guideModal').style.display = 'flex';
+    }
 
-    await loadMenuData();
+    function openWelfareModal() {
+      document.getElementById('welfareModal').style.display = 'flex';
+    }
 
-}
+    function openFacilityModal() {
+      document.getElementById('facilityModal').style.display = 'flex';
+    }
 
-    function closeMenuModal() {
-      document.getElementById('menuModal').style.display = 'none';
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
     }
 
     function renderMenuTabs() {
@@ -709,27 +796,13 @@ function setupMenuData(data){
         card.className = 'meal-card';
 
         let listHTML = items.map(item => {
-          const isHighlight =
-item.includes("특식") ||
-item.includes("삼계탕") ||
-item.includes("피자") ||
-item.includes("돈가스") ||
-item.includes("치킨") ||
-item.includes("파스타");
+          const isHighlight = item.includes("특식") || item.includes("삼계탕") || item.includes("피자") || item.includes("돈가스") || item.includes("치킨") || item.includes("파스타");
           return `<li class="${isHighlight ? 'highlight' : ''}">• ${escapeHTML(item)}</li>`;
         }).join('');
 
         card.innerHTML = `<h3>${escapeHTML(time)}</h3><ul>${listHTML}</ul>`;
         mealGrid.appendChild(card);
       }
-    }
-
-    function openGuideModal() {
-      document.getElementById('guideModal').style.display = 'flex';
-    }
-
-    function closeGuideModal() {
-      document.getElementById('guideModal').style.display = 'none';
     }
 
     function showGuideTab(tabId, element) {
@@ -743,18 +816,27 @@ item.includes("파스타");
       element.classList.add('active');
     }
 
-    // 모달 바깥 영역 클릭시 닫기
+    function handleFacilitySubmit(e) {
+      e.preventDefault();
+      const facility = document.getElementById('facilityType').value;
+      const date = document.getElementById('resDate').value;
+      alert(`[예약 완료]\n시설: ${facility}\n일시: ${date.replace('T', ' ')}\n신청이 접수되었습니다.`);
+      document.getElementById('facilityForm').reset();
+      closeModal('facilityModal');
+    }
+
     function handleModalOverlayClick(event, modalId) {
       if (event.target.id === modalId) {
-        document.getElementById(modalId).style.display = 'none';
+        closeModal(modalId);
       }
     }
 
-    // ESC 키로 모달 닫기
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        closeMenuModal();
-        closeGuideModal();
+        closeModal('menuModal');
+        closeModal('guideModal');
+        closeModal('welfareModal');
+        closeModal('facilityModal');
       }
     });
   </script>
