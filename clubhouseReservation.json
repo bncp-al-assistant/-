@@ -1,0 +1,225 @@
+{
+  "meta": {
+    "title": "CLUB HOUSE & LOUNGE 예약 신청",
+    "contact": {
+      "name": "조우형 과장",
+      "phone": "0780-929-1232"
+    }
+  },
+
+  "teams": [
+    "공사팀",
+    "사업관리팀",
+    "관리재경팀",
+    "경호경비팀",
+    "이라크 지사",
+    "기타"
+  ],
+
+  "locations": [
+    "Club House Hall",
+    "Club House 1-1",
+    "Club House 1-2",
+    "Club House 1-3",
+    "Club House 1-4",
+    "Club House 1-5",
+    "Club House 1-6",
+    "Lounge HB-01",
+    "Lounge HM-20",
+    "Lounge HM-28",
+    "Lounge HM-29",
+    "Lounge HM-30",
+    "Lounge HM-31"
+  ],
+
+  "usagePolicy": {
+    "clubHouse": {
+      "weekday": {
+        "hours": "17:30 ~ 21:00",
+        "note": "사전 예약 운영"
+      },
+      "holiday": {
+        "hours": "12:00 ~ 21:00",
+        "note": "사전 예약 운영 (사전 예약 시 노래방 기기 사용 가능)"
+      },
+      "remarks": [
+        "규정 및 시간 준수 必",
+        "야간 노래방 사용 시 창문 닫고 (타직원 수면 보장)"
+      ]
+    },
+    "lounge": {
+      "weekday": {
+        "hours": "17:30 ~ 21:00",
+        "note": "사전 예약 운영"
+      },
+      "holiday": {
+        "hours": "12:00 ~ 21:00",
+        "note": "사전 예약 운영"
+      },
+      "remarks": [
+        "규정 및 시간 준수 必",
+        "회식 후 음식물 및 각종 쓰레기 Self 청소하고 식기 등 싱크대에 모아두기",
+        "예약 없이 라운지 사용 시 청소 및 설거지 지원 불가"
+      ]
+    }
+  },
+
+  "applicationSchedule": {
+    "weekdayRequest": {
+      "label": "평일 이용 신청",
+      "deadline": "매일 오후 3시까지",
+      "operatingDays": ["일", "월", "화", "수"]
+    },
+    "weekendRequest": {
+      "label": "주말 이용 신청",
+      "deadline": "매주 목요일 오전 11시까지",
+      "operatingDays": ["목", "금", "토", "한국인 공휴일(설, 추석 등)"]
+    }
+  },
+
+  "defaultProvidedItems": [
+    "야채",
+    "쌈장",
+    "기름장",
+    "석식메뉴"
+  ],
+
+  "reservationFormSchema": {
+    "team": {
+      "type": "select",
+      "label": "팀명",
+      "options": ["공사팀", "사업관리팀", "관리재경팀", "경호경비팀", "이라크 지사", "기타"],
+      "required": true
+    },
+    "applicant": {
+      "type": "text",
+      "label": "신청자",
+      "required": true
+    },
+    "usageDate": {
+      "type": "date",
+      "label": "이용일자",
+      "required": true
+    },
+    "headcount": {
+      "type": "number",
+      "label": "사용 인원수",
+      "unit": "명",
+      "required": true,
+      "min": 1
+    },
+    "location": {
+      "type": "select",
+      "label": "장소",
+      "options": [
+        "Club House Hall",
+        "Club House 1-1",
+        "Club House 1-2",
+        "Club House 1-3",
+        "Club House 1-4",
+        "Club House 1-5",
+        "Club House 1-6",
+        "Lounge HB-01",
+        "Lounge HM-20",
+        "Lounge HM-28",
+        "Lounge HM-29",
+        "Lounge HM-30",
+        "Lounge HM-31"
+      ],
+      "required": true
+    },
+    "providedItems": {
+      "type": "checkbox_group",
+      "label": "기본 제공 품목",
+      "options": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "default": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "note": "기본 제공 항목이며 필요 시 해제 가능"
+    },
+    "additionalRequest": {
+      "type": "textarea",
+      "label": "추가 요청사항",
+      "required": false,
+      "placeholder": "기본 제공 품목 외 추가로 필요한 사항을 입력하세요 (예: 노래방 기기 사용, 음료 추가 등)"
+    },
+    "remarks": {
+      "type": "text",
+      "label": "비고",
+      "required": false
+    }
+  },
+
+  "reservations": [
+    {
+      "id": 1,
+      "usageDate": "2026-08-02",
+      "dayOfWeek": "일",
+      "team": "공사팀",
+      "applicant": "안창훈",
+      "headcount": 4,
+      "location": "Lounge HM-20",
+      "providedItems": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "additionalRequest": "",
+      "remarks": ""
+    },
+    {
+      "id": 2,
+      "usageDate": "2026-08-02",
+      "dayOfWeek": "일",
+      "team": "사업관리팀",
+      "applicant": "",
+      "headcount": null,
+      "location": "",
+      "providedItems": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "additionalRequest": "",
+      "remarks": ""
+    },
+    {
+      "id": 3,
+      "usageDate": "2026-08-02",
+      "dayOfWeek": "일",
+      "team": "관리재경팀",
+      "applicant": "",
+      "headcount": null,
+      "location": "",
+      "providedItems": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "additionalRequest": "",
+      "remarks": ""
+    },
+    {
+      "id": 4,
+      "usageDate": "2026-08-02",
+      "dayOfWeek": "일",
+      "team": "경호경비팀",
+      "applicant": "",
+      "headcount": null,
+      "location": "",
+      "providedItems": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "additionalRequest": "",
+      "remarks": ""
+    },
+    {
+      "id": 5,
+      "usageDate": "2026-08-02",
+      "dayOfWeek": "일",
+      "team": "이라크 지사",
+      "applicant": "",
+      "headcount": null,
+      "location": "",
+      "providedItems": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "additionalRequest": "",
+      "remarks": ""
+    },
+    {
+      "id": 6,
+      "usageDate": "2026-08-02",
+      "dayOfWeek": "일",
+      "team": "기타",
+      "applicant": "이창철",
+      "headcount": 4,
+      "location": "Club House 1-3",
+      "providedItems": ["야채", "쌈장", "기름장", "석식메뉴"],
+      "additionalRequest": "",
+      "remarks": ""
+    }
+  ]
+}
