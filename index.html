@@ -736,7 +736,7 @@
   <script>
     const BACKEND_API_URL = "https://odd-butterfly-b936.chogak1449.workers.dev/";
 
-    // 대체 기본 식단 데이터
+    // 대체 기본 식단 데이터 (weeklyMenu.json 로드 실패 시에만 사용)
     const fallbackMenuData = {
       weekRange: "안내 식단 예시",
       weeklyData: [
@@ -784,6 +784,7 @@
     }
 
     let weeklyData = [];
+    let weekRange = "";
     let currentTabIndex = 0;
 
     // 식단 데이터 수신 로직
@@ -801,6 +802,7 @@
 
     function setupMenuData(data) {
       weeklyData = data.weeklyData || [];
+      weekRange = data.weekRange || "";
       const title = document.getElementById("menuModalTitle");
       title.innerHTML = data.weekRange ? `주간 식단표 (${data.weekRange})` : "주간 식단표";
       
@@ -809,6 +811,9 @@
       showMealDay(0);
     }
 
+    // AI 검색: 화면에 표시되는 것과 동일한 실제 식단표/복리후생 데이터를
+    // 백엔드(Worker)로 함께 전송하여, AI가 그 데이터를 근거로만 답하도록 함.
+    // -> 이렇게 하면 "질문했을 때 답변"과 "화면 데이터"가 항상 일치한다.
     async function handleSearch() {
       const inputInput = document.getElementById('userInput');
       const responseArea = document.getElementById('responseArea');
@@ -821,11 +826,24 @@
       responseArea.style.display = "block";
       responseArea.innerHTML = "🤖 AI가 답변을 작성 중입니다...";
 
+      // 아직 식단/복리후생 데이터가 로드되지 않았다면 먼저 로드
+      if (!weeklyData || weeklyData.length === 0) {
+        await loadMenuData();
+      }
+      if (!welfareData || welfareData.length === 0) {
+        await loadWelfareData();
+      }
+
       try {
         const response = await fetch(BACKEND_API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: query }),
+          body: JSON.stringify({
+            message: query,
+            // 화면에 실제로 표시 중인 데이터를 그대로 전달
+            weeklyMenu: { weekRange: weekRange, weeklyData: weeklyData },
+            welfare: { items: welfareData }
+          }),
         });
 
         if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
