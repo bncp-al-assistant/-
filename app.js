@@ -81,18 +81,50 @@ function setupMenuData(data) {
   showMealDay(0);
 }
 
-// 클럽하우스 예약 참고 데이터(팀/장소 옵션은 index.html에 이미 고정되어 있으므로,
-// 이 함수는 과거 예약 현황(clubhouseReservation.json)이 필요할 때만 사용)
-async function loadClubhouseData() {
+// 클럽하우스/라운지 예약 - 실제 저장된 신청 내역을 Worker(KV)에서 불러와 표시
+async function refreshClubhouseList() {
+  const listArea = document.getElementById('clubhouseListArea');
+  if (!listArea) return;
+  listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">신청 내역 불러오는 중...</p>';
+
   try {
-    const response = await fetch("./clubhouseReservation.json?v=" + Date.now(), { cache: "no-store" });
-    if (!response.ok) throw new Error("clubhouseReservation.json을 찾을 수 없습니다.");
+    const response = await fetch(BACKEND_API_URL + "?type=clubhouse_list", { cache: "no-store" });
+    if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
     const data = await response.json();
     clubhouseReservations = data.reservations || [];
+    renderClubhouseList(clubhouseReservations);
   } catch (err) {
-    console.error(err);
-    clubhouseReservations = [];
+    console.error("클럽하우스 예약 조회 에러:", err);
+    listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">신청 내역을 불러오지 못했습니다.</p>';
   }
+}
+
+function renderClubhouseList(reservations) {
+  const listArea = document.getElementById('clubhouseListArea');
+  if (!listArea) return;
+
+  if (!reservations || reservations.length === 0) {
+    listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">등록된 예약 신청이 없습니다.</p>';
+    return;
+  }
+
+  // 최근 20건만 표시
+  const rows = reservations.slice(0, 20).map(r => {
+    const items = (r.providedItems && r.providedItems.length) ? r.providedItems.join(', ') : '-';
+    const extra = r.additionalRequest ? escapeHTML(r.additionalRequest) : '-';
+    return `
+      <div style="border:1px solid #3c4043; border-radius:8px; padding:10px 12px; margin-bottom:8px; font-size:13px; color:#bdc1c6;">
+        <div style="color:#8ab4f8; font-weight:600; margin-bottom:4px;">
+          ${escapeHTML(r.usageDate)} · ${escapeHTML(r.location)} · ${escapeHTML(r.team)}
+        </div>
+        <div>신청자: ${escapeHTML(r.applicant)} / 인원: ${escapeHTML(String(r.headcount))}명</div>
+        <div>기본 제공: ${escapeHTML(items)}</div>
+        <div>추가 요청: ${extra}</div>
+      </div>
+    `;
+  }).join('');
+
+  listArea.innerHTML = rows;
 }
 
 // AI 검색: 화면에 표시되는 것과 동일한 실제 식단표/복리후생 데이터를
@@ -180,8 +212,9 @@ function openFacilityModal() {
   document.getElementById('facilityModal').style.display = 'flex';
 }
 
-function openClubhouseModal() {
+async function openClubhouseModal() {
   document.getElementById('clubhouseModal').style.display = 'flex';
+  await refreshClubhouseList();
 }
 
 function closeModal(modalId) {
@@ -310,11 +343,11 @@ function toggleItemPill(checkbox) {
 }
 
 // 클럽하우스/라운지 예약 제출
-// (실제 서버/DB 연동 전까지는 alert로 접수 확인 + 콘솔에 payload 출력)
-// 추후 백엔드(Worker/DB)가 준비되면 이 함수 안에서 fetch로 저장 API를 호출하면 됩니다.
-function handleClubhouseSubmit(e) {
+// Worker(odd-butterfly-b936)의 KV 저장 API로 실제 전송하여 영구 저장합니다.
+async function handleClubhouseSubmit(e) {
   e.preventDefault();
 
+  const submitBtn = e.target.querySelector('button[type="submit"]');
   const team = document.getElementById('chTeam').value;
   const applicant = document.getElementById('chApplicant').value;
   const usageDate = document.getElementById('chDate').value;
@@ -336,22 +369,52 @@ function handleClubhouseSubmit(e) {
     additionalRequest
   };
 
-  console.log("클럽하우스/라운지 예약 신청:", payload);
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "예약 신청 처리 중...";
+  }
 
-  const itemsText = checkedItems.length > 0 ? checkedItems.join(", ") : "없음";
-  const extraText = additionalRequest ? `\n추가 요청: ${additionalRequest}` : "";
+  try {
+    const response = await fetch(BACKEND_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "clubhouse_reservation",
+        data: payload
+      })
+    });
 
-  alert(
-    `[클럽하우스/라운지 예약 완료]\n` +
-    `팀: ${team}\n신청자: ${applicant}\n일자: ${usageDate}\n` +
-    `장소: ${location}\n인원: ${headcount}명\n` +
-    `기본 제공: ${itemsText}${extraText}\n\n신청이 접수되었습니다.`
-  );
+    const result = await response.json();
 
-  document.getElementById('clubhouseForm').reset();
-  // 체크박스 초기 상태(전체 checked)로 pill 스타일 재적용
-  document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(pill => pill.classList.add('checked'));
-  closeModal('clubhouseModal');
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "예약 저장에 실패했습니다.");
+    }
+
+    const itemsText = checkedItems.length > 0 ? checkedItems.join(", ") : "없음";
+    const extraText = additionalRequest ? `\n추가 요청: ${additionalRequest}` : "";
+
+    alert(
+      `[클럽하우스/라운지 예약 완료]\n` +
+      `팀: ${team}\n신청자: ${applicant}\n일자: ${usageDate}\n` +
+      `장소: ${location}\n인원: ${headcount}명\n` +
+      `기본 제공: ${itemsText}${extraText}\n\n신청이 정상적으로 저장되었습니다.`
+    );
+
+    document.getElementById('clubhouseForm').reset();
+    document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(pill => pill.classList.add('checked'));
+
+    // 저장 직후 목록 갱신
+    await refreshClubhouseList();
+
+  } catch (err) {
+    console.error("클럽하우스 예약 저장 에러:", err);
+    alert("⚠️ 예약 저장 중 오류가 발생했습니다.\n" + err.message + "\n\n네트워크 상태 또는 Cloudflare Worker/KV 설정을 확인해주세요.");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "예약 신청하기";
+    }
+  }
 }
 
 function handleModalOverlayClick(event, modalId) {
