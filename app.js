@@ -381,6 +381,43 @@ function openGuideModal() {
 
 function openHaircutModal() {
   document.getElementById('haircutModal').style.display = 'flex';
+  populateHaircutFridays();
+}
+
+// 이번 달의 (오늘 이후) 금요일들을 구해서 select에 채움.
+// 이번 달에 남은 금요일이 없으면 다음 달 금요일까지 이어서 채움.
+function populateHaircutFridays() {
+  const select = document.getElementById('hcDate');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">선택해주세요</option>';
+
+  const fridays = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // 이번 달 + 다음 달 범위에서 금요일만 수집 (금요일 = getDay() === 5)
+  for (let monthOffset = 0; monthOffset <= 1 && fridays.length === 0; monthOffset++) {
+    const year = today.getFullYear();
+    const month = today.getMonth() + monthOffset;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(year, month, day);
+      if (d.getDay() === 5 && d >= today) {
+        fridays.push(d);
+      }
+    }
+  }
+
+  fridays.forEach(d => {
+    const dateStr = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+    const label = `${d.getMonth() + 1}월 ${d.getDate()}일 (금)`;
+    const opt = document.createElement('option');
+    opt.value = dateStr;
+    opt.textContent = label;
+    select.appendChild(opt);
+  });
 }
 
 async function openClubhouseModal() {
@@ -505,16 +542,18 @@ function handleHaircutSubmit(e) {
   e.preventDefault();
   const name = document.getElementById('hcName').value.trim();
   const date = document.getElementById('hcDate').value;
+  const service = document.getElementById('hcService').value;
   const time = document.getElementById('hcTime').value;
   const memo = document.getElementById('hcMemo').value.trim();
 
   if (!name) { alert('이름을 입력해주세요.'); return; }
   if (!date) { alert('희망 날짜를 선택해주세요.'); return; }
+  if (!service) { alert('서비스 종류(커트/염색)를 선택해주세요.'); return; }
   if (!time) { alert('희망 시간대를 선택해주세요.'); return; }
 
   alert(
     `[이발서비스 예약 접수]\n` +
-    `이름: ${name}\n날짜: ${date}\n시간대: ${time}` +
+    `이름: ${name}\n날짜: ${date}\n서비스: ${service}\n시간대: ${time}` +
     (memo ? `\n요청사항: ${memo}` : '') +
     `\n\n선착순 운영으로, 현장 상황에 따라 대기시간이 발생할 수 있습니다.`
   );
