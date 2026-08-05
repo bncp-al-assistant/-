@@ -86,41 +86,42 @@ function setupMenuData(data) {
   showMealDay(0);
 }
 
-// 클럽하우스/라운지 예약 - 실제 저장된 신청 내역을 Worker(KV)에서 불러와 표시
-async function refreshClubhouseList() {
-  const listArea = document.getElementById('clubhouseListArea');
+// 클럽하우스/라운지 예약 - 특정 날짜의 예약 현황을 Worker(KV)에서 불러와 표시
+async function loadDateReservationList(dateStr) {
+  const listArea = document.getElementById('chDateListArea');
   if (!listArea) return;
-  listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">신청 내역 불러오는 중...</p>';
+  listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">불러오는 중...</p>';
 
   try {
-    const response = await fetch(BACKEND_API_URL + "?type=clubhouse_list", { cache: "no-store" });
+    const response = await fetch(
+      BACKEND_API_URL + "?type=clubhouse_list&date=" + encodeURIComponent(dateStr),
+      { cache: "no-store" }
+    );
     if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
     const data = await response.json();
-    clubhouseReservations = data.reservations || [];
-    renderClubhouseList(clubhouseReservations);
+    renderDateReservationList(data.reservations || []);
   } catch (err) {
     console.error("클럽하우스 예약 조회 에러:", err);
     listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">신청 내역을 불러오지 못했습니다.</p>';
   }
 }
 
-function renderClubhouseList(reservations) {
-  const listArea = document.getElementById('clubhouseListArea');
+function renderDateReservationList(reservations) {
+  const listArea = document.getElementById('chDateListArea');
   if (!listArea) return;
 
   if (!reservations || reservations.length === 0) {
-    listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">등록된 예약 신청이 없습니다.</p>';
+    listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">이 날짜에는 아직 예약이 없습니다.</p>';
     return;
   }
 
-  // 최근 20건만 표시
-  const rows = reservations.slice(0, 20).map(r => {
+  const rows = reservations.map(r => {
     const items = (r.providedItems && r.providedItems.length) ? r.providedItems.join(', ') : '-';
     const extra = r.additionalRequest ? escapeHTML(r.additionalRequest) : '-';
     return `
       <div class="res-item" data-res-id="${escapeHTML(r.id)}">
         <div style="color:#8ab4f8; font-weight:600; margin-bottom:4px;">
-          ${escapeHTML(r.usageDate)} · ${escapeHTML(r.location)} · ${escapeHTML(r.team)}
+          ${escapeHTML(r.location)} · ${escapeHTML(r.team)}
         </div>
         <div>신청자: ${escapeHTML(r.applicant)} / 인원: ${escapeHTML(String(r.headcount))}명</div>
         <div>기본 제공: ${escapeHTML(items)}</div>
@@ -156,8 +157,10 @@ async function handleCancelReservation(id, btn) {
       throw new Error(result.error || '취소 처리에 실패했습니다.');
     }
 
-    // 취소 성공 시 목록 및 달력 다시 불러오기
-    await refreshClubhouseList();
+    // 취소 성공 시 현재 날짜의 목록 및 달력 다시 불러오기
+    if (chCalendarSelectedDate) {
+      await loadDateReservationList(chCalendarSelectedDate);
+    }
     await loadCalendarReservations();
     renderCalendar();
   } catch (err) {
@@ -170,9 +173,9 @@ async function handleCancelReservation(id, btn) {
   }
 }
 
-// ---- 클럽하우스/라운지 예약 - 달력 위젯 ----
+// ---- 클럽하우스/라운지 예약 - 달력 위젯 (STEP 1) ----
 
-// 예약 목록을 날짜별로 그룹화 (달력 표시용)
+// 예약 목록을 날짜별로 그룹화 (달력에 점 표시용)
 async function loadCalendarReservations() {
   try {
     const response = await fetch(BACKEND_API_URL + "?type=clubhouse_list", { cache: "no-store" });
@@ -249,7 +252,7 @@ function renderCalendar() {
     if (dateStr < todayStr) {
       cell.classList.add('past');
     } else {
-      cell.onclick = () => selectCalendarDate(dateStr);
+      cell.onclick = () => showDetailStep(dateStr);
     }
 
     if (dateStr === todayStr) {
@@ -270,24 +273,31 @@ function renderCalendar() {
   }
 }
 
-function selectCalendarDate(dateStr) {
-  chCalendarSelectedDate = dateStr;
-  document.getElementById('chDate').value = dateStr;
+// ---- STEP 전환 ----
+
+function showCalendarStep() {
+  chCalendarSelectedDate = null;
+  document.getElementById('chStepCalendar').style.display = 'block';
+  document.getElementById('chStepDetail').style.display = 'none';
   renderCalendar();
-  updateSelectedDateText(dateStr);
 }
 
-function updateSelectedDateText(dateStr) {
-  const textEl = document.getElementById('chSelectedDateText');
-  if (!textEl) return;
+async function showDetailStep(dateStr) {
+  chCalendarSelectedDate = dateStr;
 
-  const booked = chCalendarReservationsByDate[dateStr];
-  if (booked && booked.length > 0) {
-    const locations = booked.map(b => escapeHTML(b.location)).join(', ');
-    textEl.innerHTML = `선택: <strong>${dateStr}</strong> · <span class="booked-info">이미 예약됨: ${locations}</span>`;
-  } else {
-    textEl.innerHTML = `선택: <strong>${dateStr}</strong> · 예약 가능`;
-  }
+  document.getElementById('chStepCalendar').style.display = 'none';
+  document.getElementById('chStepDetail').style.display = 'block';
+
+  const dateLabel = document.getElementById('chDetailDateLabel');
+  if (dateLabel) dateLabel.textContent = `📅 ${dateStr} 예약 현황 및 신청`;
+
+  // 폼 초기화 + 선택한 날짜를 hidden 필드에 반영
+  const form = document.getElementById('clubhouseForm');
+  if (form) form.reset();
+  document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(pill => pill.classList.add('checked'));
+  document.getElementById('chDate').value = dateStr;
+
+  await loadDateReservationList(dateStr);
 }
 
 
@@ -369,13 +379,11 @@ function openHaircutModal() {
 
 async function openClubhouseModal() {
   document.getElementById('clubhouseModal').style.display = 'flex';
-  await refreshClubhouseList();
 
-  // 달력 초기화 (오늘이 속한 달로 리셋, 선택 초기화)
+  // 항상 달력 화면(STEP 1)부터 시작
+  showCalendarStep();
+
   chCalendarViewDate = new Date();
-  chCalendarSelectedDate = null;
-  document.getElementById('chDate').value = '';
-  document.getElementById('chSelectedDateText').innerHTML = '';
   await loadCalendarReservations();
   renderCalendar();
 }
@@ -587,12 +595,11 @@ async function handleClubhouseSubmit(e) {
 
     document.getElementById('clubhouseForm').reset();
     document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(pill => pill.classList.add('checked'));
+    // 같은 날짜에 계속 있을 수 있도록 hidden 날짜 값은 유지
+    document.getElementById('chDate').value = usageDate;
 
-    // 저장 직후 목록 및 달력 갱신
-    await refreshClubhouseList();
-    chCalendarSelectedDate = null;
-    document.getElementById('chDate').value = '';
-    document.getElementById('chSelectedDateText').innerHTML = '';
+    // 저장 직후 이 날짜의 조회 목록 및 달력 점 갱신
+    await loadDateReservationList(usageDate);
     await loadCalendarReservations();
     renderCalendar();
 
