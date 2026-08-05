@@ -1,504 +1,882 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>CLUB HOUSE / Lounge 예약 신청</title>
-<style>
-  :root {
-    --bg: #0b0b0d;
-    --panel: #1a1a1e;
-    --panel-border: #2c2c31;
-    --field-bg: #232327;
-    --text: #f2f2f0;
-    --text-dim: #9a9a9f;
-    --accent: #e8722c;
-    --accent-dim: #7a3c17;
-    --danger: #e05252;
-    --danger-dim: #4a2020;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNCP AI Assistant</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  * { box-sizing: border-box; }
+    body {
+      background-color: #202124;
+      color: #e8eaed;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-    display: flex;
-    justify-content: center;
-    padding: 32px 16px 64px;
-  }
+    header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 16px 24px;
+      gap: 16px;
+      font-size: 14px;
+    }
 
-  .card {
-    width: 100%;
-    max-width: 640px;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    border-radius: 16px;
-    overflow: hidden;
-  }
+    header a {
+      color: #e8eaed;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--panel-border);
-  }
+    header a:hover {
+      color: #8ab4f8;
+      text-decoration: underline;
+    }
 
-  .card-header h1 { font-size: 19px; margin: 0; letter-spacing: -0.01em; }
-  .card-header .close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; line-height: 1; }
+    .profile-icon {
+      width: 32px;
+      height: 32px;
+      background-color: #ff6b00;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 13px;
+      user-select: none;
+    }
 
-  .tabs { display: flex; border-bottom: 1px solid var(--panel-border); }
-  .tab-btn {
-    flex: 1; background: none; border: none; color: var(--text-dim);
-    font-size: 14px; font-weight: 600; padding: 14px 0; cursor: pointer;
-    border-bottom: 2px solid transparent;
-  }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+    }
 
-  .card-body { padding: 20px 24px 28px; }
+    .logo {
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      margin-bottom: 24px;
+      user-select: none;
+      color: #ffffff;
+      text-align: center;
+    }
 
-  .field { margin-bottom: 20px; }
-  .field label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+    .logo span {
+      color: #ff6b00;
+    }
 
-  select, input[type="text"], input[type="number"], input[type="date"], textarea {
-    width: 100%; background: var(--field-bg); border: 1px solid var(--panel-border);
-    border-radius: 8px; color: var(--text); padding: 11px 12px; font-size: 14px; font-family: inherit;
-  }
-  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-  textarea { resize: vertical; min-height: 90px; }
+    .search-box {
+      width: 100%;
+      max-width: 620px;
+      height: 52px;
+      background-color: #303134;
+      border: 1px solid #5f6368;
+      border-radius: 26px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
 
-  .checkbox-row { display: flex; flex-wrap: wrap; gap: 10px; }
-  .checkbox-pill {
-    display: flex; align-items: center; gap: 6px; padding: 8px 14px;
-    border: 1px solid var(--accent); border-radius: 999px; cursor: pointer;
-    font-size: 13px; color: var(--accent); user-select: none;
-  }
-  .checkbox-pill input { accent-color: var(--accent); width: 14px; height: 14px; }
-  .checkbox-pill.unchecked { color: var(--text-dim); border-color: var(--panel-border); }
+    .search-box:hover, .search-box:focus-within {
+      background-color: #303134;
+      border-color: #8ab4f8;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
 
-  .hint { font-size: 12px; color: var(--text-dim); font-weight: 400; margin-left: 6px; }
+    .search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e8eaed;
+      font-size: 16px;
+      margin-left: 12px;
+    }
 
-  .submit-btn {
-    width: 100%; background: var(--accent); color: #1a0e05; border: none;
-    border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 700;
-    cursor: pointer; margin-top: 4px;
-  }
-  .submit-btn:disabled { background: var(--accent-dim); color: #cbb9a9; cursor: not-allowed; }
+    .btn-group {
+      margin-top: 24px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 700px;
+    }
 
-  .status-msg { margin-top: 10px; font-size: 13px; text-align: center; }
-  .status-msg.error { color: var(--danger); }
-  .status-msg.success { color: #6fcf7f; }
+    .btn {
+      background-color: #303134;
+      border: 1px solid #303134;
+      color: #e8eaed;
+      padding: 10px 18px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
 
-  .recent-section { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--panel-border); }
-  .recent-section h2 { font-size: 14px; color: var(--accent); margin: 0 0 12px; display: flex; align-items: center; gap: 6px; }
-  .recent-list { display: flex; flex-direction: column; gap: 10px; }
-  .recent-item { background: var(--field-bg); border: 1px solid var(--panel-border); border-radius: 8px; padding: 12px 14px; font-size: 13px; }
-  .recent-item .top-row { display: flex; justify-content: space-between; color: var(--text); font-weight: 600; margin-bottom: 4px; }
-  .recent-item .sub-row { color: var(--text-dim); }
-  .empty-msg { color: var(--text-dim); font-size: 13px; }
+    .btn:hover {
+      border: 1px solid #8ab4f8;
+      color: #8ab4f8;
+    }
 
-  .filter-row { display: flex; gap: 10px; margin-bottom: 18px; }
-  .filter-row input[type="date"] { flex: 1; }
-  .filter-row button {
-    background: var(--field-bg); border: 1px solid var(--panel-border); color: var(--text);
-    border-radius: 8px; padding: 0 16px; font-size: 13px; cursor: pointer; white-space: nowrap;
-  }
-  .filter-row button:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary {
+      background-color: #ff6b00;
+      border-color: #ff6b00;
+      color: #fff;
+      font-weight: bold;
+    }
 
-  .list-item { background: var(--field-bg); border: 1px solid var(--panel-border); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
-  .list-item .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .list-item .title { font-weight: 700; font-size: 14px; }
-  .list-item .date-badge {
-    font-size: 12px; color: var(--accent); background: rgba(232, 114, 44, 0.12);
-    padding: 3px 9px; border-radius: 999px; white-space: nowrap;
-  }
-  .list-item .details { margin-top: 6px; font-size: 13px; color: var(--text-dim); line-height: 1.6; }
-  .list-item .cancel-btn {
-    margin-top: 10px; width: 100%; background: transparent; border: 1px solid var(--danger);
-    color: var(--danger); border-radius: 8px; padding: 9px; font-size: 13px; font-weight: 600; cursor: pointer;
-  }
-  .list-item .cancel-btn:hover { background: var(--danger-dim); }
-  .list-item .cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .list-item.cancelled { opacity: 0.45; }
-  .list-item.cancelled .cancel-btn { display: none; }
-</style>
+    .btn-primary:hover {
+      background-color: #e05e00;
+      color: #fff;
+      border-color: #e05e00;
+    }
+
+    .response-area {
+      width: 100%;
+      max-width: 620px;
+      margin-top: 24px;
+      background-color: #303134;
+      border: 1px solid #5f6368;
+      border-radius: 12px;
+      padding: 20px;
+      display: none;
+      line-height: 1.6;
+      font-size: 15px;
+      white-space: pre-wrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Modals */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.75);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(3px);
+    }
+
+    .modal-content {
+      background-color: #303134;
+      width: 92%;
+      max-width: 850px;
+      max-height: 88vh;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid #3c4043;
+    }
+
+    .modal-header h2 {
+      font-size: 1.25rem;
+      color: #8ab4f8;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #9aa0a6;
+      font-size: 26px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .close-btn:hover {
+      color: #e8eaed;
+    }
+
+    .tab-bar {
+      display: flex;
+      background-color: #202124;
+      overflow-x: auto;
+      border-bottom: 1px solid #3c4043;
+      scrollbar-width: thin;
+    }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px 10px;
+      background: none;
+      border: none;
+      color: #9aa0a6;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #8ab4f8;
+      border-bottom-color: #8ab4f8;
+      background-color: #303134;
+    }
+
+    .modal-body {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    /* Menu Cards */
+    .meal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+    }
+
+    .meal-card {
+      background-color: #202124;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #3c4043;
+    }
+
+    .meal-card h3 {
+      font-size: 1rem;
+      color: #ff6b00;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #3c4043;
+      padding-bottom: 6px;
+    }
+
+    .meal-card ul {
+      list-style: none;
+    }
+
+    .meal-card li {
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #bdc1c6;
+    }
+
+    .meal-card li.highlight {
+      color: #8ab4f8;
+      font-weight: bold;
+    }
+
+    /* Info Guide Cards */
+    .info-section {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .info-card {
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .info-card h3 {
+      color: #8ab4f8;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-card p, .info-card li {
+      font-size: 14px;
+      color: #bdc1c6;
+      line-height: 1.6;
+    }
+
+    .info-card ul {
+      margin-left: 20px;
+      margin-top: 8px;
+    }
+
+    .notice-box {
+      background-color: #3c2a1e;
+      border-left: 4px solid #ff6b00;
+      padding: 12px 16px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #e8eaed;
+    }
+
+    /* Welfare Cards */
+    .welfare-search {
+      width: 100%;
+      padding: 10px 14px;
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 8px;
+      color: #e8eaed;
+      font-size: 14px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+
+    .welfare-search:focus {
+      border-color: #8ab4f8;
+    }
+
+    .welfare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .welfare-card {
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .welfare-card .no {
+      display: inline-block;
+      background-color: #ff6b00;
+      color: #fff;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .welfare-card h3 {
+      color: #8ab4f8;
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .welfare-card .target {
+      font-size: 12px;
+      color: #9aa0a6;
+      margin-bottom: 8px;
+    }
+
+    .welfare-card .desc {
+      font-size: 13px;
+      color: #bdc1c6;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .welfare-card .contact {
+      font-size: 12px;
+      color: #9aa0a6;
+      border-top: 1px solid #3c4043;
+      padding-top: 8px;
+    }
+
+    .welfare-details {
+      margin-bottom: 10px;
+      background-color: #171717;
+      border: 1px solid #3c4043;
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+
+    .welfare-details summary {
+      cursor: pointer;
+      font-size: 12px;
+      color: #8ab4f8;
+      font-weight: 500;
+      list-style: none;
+    }
+
+    .welfare-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .welfare-details summary::before {
+      content: "▶ ";
+      font-size: 10px;
+    }
+
+    .welfare-details[open] summary::before {
+      content: "▼ ";
+    }
+
+    .welfare-details ul {
+      margin: 8px 0 0 16px;
+      padding: 0;
+    }
+
+    .welfare-details li {
+      font-size: 12.5px;
+      color: #bdc1c6;
+      line-height: 1.6;
+      margin-bottom: 6px;
+    }
+
+    /* Form Styles for Reservation */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      color: #bdc1c6;
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 6px;
+      color: #e8eaed;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: #8ab4f8;
+    }
+
+    /* Checkbox group (clubhouse provided items) */
+    .checkbox-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .checkbox-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #bdc1c6;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-pill input {
+      accent-color: #ff6b00;
+      cursor: pointer;
+    }
+
+    .checkbox-pill.checked {
+      border-color: #ff6b00;
+      color: #ff6b00;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 70px;
+      font-family: inherit;
+    }
+
+    .schedule-box {
+      background-color: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      font-size: 13px;
+      color: #bdc1c6;
+      line-height: 1.7;
+    }
+
+    .schedule-box strong {
+      color: #8ab4f8;
+    }
+
+    footer {
+      background-color: #171717;
+      color: #9aa0a6;
+      font-size: 13px;
+      margin-top: auto;
+    }
+
+    .footer-top {
+      padding: 12px 30px;
+      border-bottom: 1px solid #212327;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 12px 30px;
+      gap: 10px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-links a {
+      color: #9aa0a6;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="card-header">
-    <h1>Club House / Lounge 예약</h1>
-    <button class="close" onclick="window.close && window.close()">&times;</button>
-  </div>
+  <header>
+    <a onclick="openGuideModal()">캠프/업무 안내</a>
+    <a onclick="openMenuModal()">주간 식단표</a>
+    <a onclick="openHaircutModal()">이발서비스 예약</a>
+    <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
+    <div class="profile-icon">한화</div>
+  </header>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="apply">예약 신청</button>
-    <button class="tab-btn" data-tab="manage">예약 조회 · 취소</button>
-  </div>
+  <main>
+    <div class="logo">BNCP <span>AI</span> Assistant</div>
+    
+    <div class="search-box">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#9aa0a6">
+        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+      <input type="text" id="userInput" placeholder="식단, 부임 절차, 캠프 부대시설 문의를 입력하세요..." onkeydown="if(event.key==='Enter') handleSearch()">
+    </div>
 
-  <div class="card-body">
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="handleSearch()">AI 답변 요청</button>
+      <button class="btn" onclick="openMenuModal()">주간 식단표</button>
+      <button class="btn" onclick="openGuideModal()">캠프 생활/업무 안내</button>
+      <button class="btn" onclick="openHaircutModal()">이발서비스 예약</button>
+      <button class="btn" onclick="openClubhouseModal()">클럽하우스/라운지 예약</button>
+    </div>
 
-    <!-- ===================== 예약 신청 탭 ===================== -->
-    <div class="tab-panel active" id="tab-apply">
-      <form id="reservation-form">
-        <div class="field">
-          <label for="team">팀명</label>
-          <select id="team" required></select>
-        </div>
-        <div class="field">
-          <label for="applicant">신청자</label>
-          <input type="text" id="applicant" placeholder="이름을 입력하세요" required />
-        </div>
-        <div class="field">
-          <label for="usageDate">이용일자</label>
-          <input type="date" id="usageDate" required />
-        </div>
-        <div class="field">
-          <label for="headcount">사용 인원수</label>
-          <input type="number" id="headcount" min="1" placeholder="명" required />
-        </div>
-        <div class="field">
-          <label for="location">장소</label>
-          <select id="location" required></select>
-        </div>
-        <div class="field">
-          <label>기본 제공 품목 <span class="hint">(필요 없으면 체크 해제)</span></label>
-          <div class="checkbox-row" id="provided-items"></div>
-        </div>
-        <div class="field">
-          <label for="additionalRequest">추가 요청사항 (선택)</label>
-          <textarea id="additionalRequest" placeholder="예: 노래방 기기 사용, 음료 추가 등"></textarea>
-        </div>
-        <button type="submit" class="submit-btn" id="submit-btn">예약 신청</button>
-        <div class="status-msg" id="status-msg"></div>
-      </form>
+    <div class="response-area" id="responseArea"></div>
+  </main>
 
-      <div class="recent-section">
-        <h2>📋 최근 예약 신청 내역</h2>
-        <div class="recent-list" id="recent-list">
-          <div class="empty-msg">불러오는 중...</div>
+  <!-- 1. 주간 식단표 모달 -->
+  <div class="modal-overlay" id="menuModal" onclick="handleModalOverlayClick(event, 'menuModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="menuModalTitle">주간 식단표</h2>
+        <button class="close-btn" onclick="closeModal('menuModal')">&times;</button>
+      </div>
+      <div class="tab-bar" id="menuTabBar"></div>
+      <div class="modal-body">
+        <div class="meal-grid" id="mealGrid"></div>
+        <div style="margin-top: 15px; font-size: 12px; color: #9aa0a6; text-align: right;">
+          * 현지 식재 사정에 따라 메뉴가 변동될 수 있습니다.
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ===================== 예약 조회·취소 탭 ===================== -->
-    <div class="tab-panel" id="tab-manage">
-      <div class="filter-row">
-        <input type="date" id="filter-date" />
-        <button type="button" id="filter-apply-btn">날짜로 조회</button>
-        <button type="button" id="filter-clear-btn">전체 보기</button>
+  <!-- 2. 부임자 및 캠프 생활/업무 안내 모달 -->
+  <div class="modal-overlay" id="guideModal" onclick="handleModalOverlayClick(event, 'guideModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>BNCP 캠프 생활 및 업무 안내</h2>
+        <button class="close-btn" onclick="closeModal('guideModal')">&times;</button>
       </div>
-      <div class="status-msg" id="manage-status-msg"></div>
-      <div id="manage-list">
-        <div class="empty-msg">불러오는 중...</div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="showGuideTab('tab1', this)">식당 이용</button>
+        <button class="tab-btn" onclick="showGuideTab('tab2', this)">숙소/오피스</button>
+        <button class="tab-btn" onclick="showGuideTab('tab3', this)">부대/체육시설</button>
+        <button class="tab-btn" onclick="showGuideTab('tab4', this)">의료/안전수칙</button>
+        <button class="tab-btn" onclick="showGuideTab('tab5', this)">휴가/부임절차</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Tab 1: 식당 이용 -->
+        <div id="tab1" class="info-section">
+          <div class="info-card">
+            <h3>🍽️ 직원식당 이용시간</h3>
+            <ul>
+              <li><strong>조식:</strong> 06:00 ~ 07:00 (※ 금요일 조식: 07:00 ~ 08:00)</li>
+              <li><strong>중식:</strong> 11:30 ~ 12:30</li>
+              <li><strong>석식:</strong> 17:30 ~ 18:30</li>
+            </ul>
+            <div class="notice-box">
+              ⚠️ <strong>주의사항:</strong> 식당 외부로 음식물 Take-Out을 엄격히 금지합니다.
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: 숙소 / 오피스 -->
+        <div id="tab2" class="info-section" style="display:none;">
+          <div class="info-card">
+            <h3>🏢 캠프 오피스 (1동)</h3>
+            <p><strong>운영시간:</strong> 07:00 ~ 22:00 (캠프 보스 24시간 상주)</p>
+            <p><strong>주요 업무:</strong> 부임/출장 시 숙소 배정, 하자 및 불편사항 접수, 소모품 교환</p>
+          </div>
+          <div class="info-card">
+            <h3>🧺 세탁 서비스 & 소모품</h3>
+            <ul>
+              <li><strong>세탁 수거:</strong> 출근 전 개인 세탁망을 복도 수거함에 집하 (홀수일 수거)</li>
+              <li><strong>침구 청소:</strong> 침구 세탁 월 1회, 개인 청소 일일 1회</li>
+              <li><strong>소모품 지급:</strong> 침구 set, 수건(3개), 샴푸/비누, 휴지, 멀티탭 등 (1:1 교환 원칙)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 3: 부대/체육시설 -->
+        <div id="tab3" class="info-section" style="display:none;">
+          <div class="info-card">
+            <h3>⛳ Screen Golf & Indoor Sports</h3>
+            <ul>
+              <li><strong>1동 (임원/부장):</strong> 스크린 4실, 연습타석 6개 / 탁구, 당구, 헬스</li>
+              <li><strong>2동/3동 (차장~사원):</strong> 연습타석 6개(2동) / 헬스기구, 바이크, 체중계(3동)</li>
+              <li><strong>이용시간:</strong> 평일 18:00~21:00 / 휴일·금요일 08:00~22:00</li>
+            </ul>
+            <div class="notice-box">
+              👟 헬스장 내 안전화 착용 금지, 금연, 이용 후 전등/에어컨 OFF 필수!
+            </div>
+          </div>
+          <div class="info-card">
+            <h3>📚 도서관 & 이발소 & 사우나</h3>
+            <ul>
+              <li><strong>도서관 (1동):</strong> 평일 18:00~22:00 / 휴일·금 10:00~22:00 (1회 4박 1권)</li>
+              <li><strong>이발소 (1동):</strong> 매주 금, 토 08:00~21:00 (선착순 이용, 팁 절대 금지)</li>
+              <li><strong>사우나:</strong> 휴일/금요일 08:00~21:00 운영</li>
+              <li><strong>시설 문의:</strong> 운영지원팀 (0780-929-1232)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 4: 의료 / 안전수칙 -->
+        <div id="tab4" class="info-section" style="display:none;">
+          <div class="info-card">
+            <h3>🏥 캠프 Clinic (의료실)</h3>
+            <p><strong>담당자:</strong> HSE팀</p>
+            <p><strong>연락처:</strong> 0780-926-2446 (내선 4327)</p>
+          </div>
+          <div class="info-card">
+            <h3>🛡️ VCC 출입 통제 & 금지 품목</h3>
+            <ul>
+              <li><strong>반입 금지:</strong> 총기류, 도기류, 인화성 위험물 (수시 불시점검)</li>
+              <li><strong>VCC 정밀검색:</strong> 24시간 문형 검색대 및 X-Ray 투과 검색 진행</li>
+              <li><strong>절전/절수:</strong> 출근 시 숙소 에어컨/전등 스위치 OFF, 잔반 줄이기 실천</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Tab 5: 휴가 / 부임절차 -->
+        <div id="tab5" class="info-section" style="display:none;">
+          <div class="info-card">
+            <h3>✈️ 정기휴가 및 부임 기준</h3>
+            <ul>
+              <li><strong>휴가 주기:</strong> 해외근무 3.5개월마다 14일 부여 (매주 목요일 출발)</li>
+              <li><strong>휴가 신청:</strong> 최소 4주 전 전자결재 완료 (운영지원팀 참조)</li>
+              <li><strong>부임비 지급:</strong> 별도 신청 없이 발권시스템 정보 확인 후 부임 달 익월 경비 지급일 지급</li>
+            </ul>
+          </div>
+        </div>
+
       </div>
     </div>
-
   </div>
-</div>
 
-<script>
-  const API_BASE = "https://odd-butterfly-b936.chogak1449.workers.dev";
+  <!-- 3. 이발서비스 예약 모달 -->
+  <div class="modal-overlay" id="haircutModal" onclick="handleModalOverlayClick(event, 'haircutModal')">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2>💈 이발서비스 예약</h2>
+        <button class="close-btn" onclick="closeModal('haircutModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="schedule-box">
+          <strong>[운영 안내]</strong> 매주 금요일, 토요일 08:00 ~ 21:00 (1동)<br>
+          선착순 이용이며, <strong>팁은 절대 금지</strong>입니다.
+        </div>
 
-  const DEFAULT_META = {
-    teams: ["공사팀", "사업관리팀", "관리재경팀", "경호경비팀", "이라크 지사", "기타"],
-    locations: [
-      "Club House Hall", "Club House 1-1", "Club House 1-2", "Club House 1-3",
-      "Club House 1-4", "Club House 1-5", "Club House 1-6",
-      "Lounge HB-01", "Lounge HM-20", "Lounge HM-28", "Lounge HM-29",
-      "Lounge HM-30", "Lounge HM-31"
-    ],
-    defaultProvidedItems: ["야채", "쌈장", "기름장", "석식메뉴"]
-  };
-
-  // ---------- 탭 전환 ----------
-  const tabBtns = document.querySelectorAll(".tab-btn");
-  const tabPanels = {
-    apply: document.getElementById("tab-apply"),
-    manage: document.getElementById("tab-manage"),
-  };
-  tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      tabBtns.forEach((b) => b.classList.remove("active"));
-      Object.values(tabPanels).forEach((p) => p.classList.remove("active"));
-      btn.classList.add("active");
-      tabPanels[btn.dataset.tab].classList.add("active");
-      if (btn.dataset.tab === "manage") loadManageList();
-    });
-  });
-
-  // ---------- 신청 탭 요소 ----------
-  const teamSelect = document.getElementById("team");
-  const locationSelect = document.getElementById("location");
-  const providedItemsWrap = document.getElementById("provided-items");
-  const usageDateInput = document.getElementById("usageDate");
-  const statusMsg = document.getElementById("status-msg");
-  const submitBtn = document.getElementById("submit-btn");
-  const recentList = document.getElementById("recent-list");
-
-  // ---------- 조회·취소 탭 요소 ----------
-  const filterDateInput = document.getElementById("filter-date");
-  const filterApplyBtn = document.getElementById("filter-apply-btn");
-  const filterClearBtn = document.getElementById("filter-clear-btn");
-  const manageStatusMsg = document.getElementById("manage-status-msg");
-  const manageList = document.getElementById("manage-list");
-
-  function fillSelect(select, options) {
-    select.innerHTML = "";
-    options.forEach((opt) => {
-      const o = document.createElement("option");
-      o.value = opt;
-      o.textContent = opt;
-      select.appendChild(o);
-    });
-  }
-
-  function renderProvidedItems(items) {
-    providedItemsWrap.innerHTML = "";
-    items.forEach((item) => {
-      const label = document.createElement("label");
-      label.className = "checkbox-pill";
-      label.innerHTML = `<input type="checkbox" value="${item}" checked /> ${item}`;
-      const checkbox = label.querySelector("input");
-      checkbox.addEventListener("change", () => {
-        label.classList.toggle("unchecked", !checkbox.checked);
-      });
-      providedItemsWrap.appendChild(label);
-    });
-  }
-
-  function getSelectedProvidedItems() {
-    return Array.from(providedItemsWrap.querySelectorAll("input[type=checkbox]:checked")).map((el) => el.value);
-  }
-
-  // ---------- 메타데이터: GET ?type=clubhouse_meta ----------
-  async function loadMeta() {
-    try {
-      const res = await fetch(`${API_BASE}/?type=clubhouse_meta`);
-      const json = await res.json();
-      if (json.success && json.meta) {
-        fillSelect(teamSelect, json.meta.teams);
-        fillSelect(locationSelect, json.meta.locations);
-        renderProvidedItems(json.meta.defaultProvidedItems);
-        return;
-      }
-      throw new Error("메타데이터 응답 형식 오류");
-    } catch (e) {
-      console.warn("메타데이터 로드 실패, 기본값 사용:", e);
-      fillSelect(teamSelect, DEFAULT_META.teams);
-      fillSelect(locationSelect, DEFAULT_META.locations);
-      renderProvidedItems(DEFAULT_META.defaultProvidedItems);
-    }
-  }
-
-  // ---------- 최근 예약 목록: GET ?type=clubhouse_list ----------
-  async function loadRecentReservations() {
-    try {
-      const res = await fetch(`${API_BASE}/?type=clubhouse_list`);
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "조회 실패");
-
-      const items = (json.reservations || []).slice(0, 5);
-      if (items.length === 0) {
-        recentList.innerHTML = `<div class="empty-msg">등록된 예약이 없습니다.</div>`;
-        return;
-      }
-
-      recentList.innerHTML = items.map((r) => `
-        <div class="recent-item">
-          <div class="top-row">
-            <span>${r.team} · ${r.applicant}</span>
-            <span>${r.usageDate}</span>
+        <form id="haircutForm" onsubmit="handleHaircutSubmit(event)">
+          <div class="form-group">
+            <label for="hcName">이름</label>
+            <input type="text" id="hcName" class="form-control" placeholder="예: 홍길동" required>
           </div>
-          <div class="sub-row">${r.location} · ${r.headcount}명${r.additionalRequest ? " · " + r.additionalRequest : ""}</div>
-        </div>`).join("");
-    } catch (e) {
-      console.warn("예약 내역 로드 실패:", e);
-      recentList.innerHTML = `<div class="empty-msg">신청 내역을 불러오지 못했습니다.</div>`;
-    }
-  }
 
-  function setStatus(message, type) {
-    statusMsg.textContent = message;
-    statusMsg.className = "status-msg" + (type ? " " + type : "");
-  }
-
-  // ---------- 예약 신청: POST { type: "clubhouse_reservation", data: {...} } ----------
-  document.getElementById("reservation-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setStatus("", "");
-
-    const data = {
-      team: teamSelect.value,
-      applicant: document.getElementById("applicant").value.trim(),
-      usageDate: usageDateInput.value,
-      headcount: Number(document.getElementById("headcount").value),
-      location: locationSelect.value,
-      providedItems: getSelectedProvidedItems(),
-      additionalRequest: document.getElementById("additionalRequest").value.trim(),
-    };
-
-    // ---- 필수 항목 개별 검증 ----
-    if (!data.team) {
-      setStatus("팀명을 선택해주세요.", "error");
-      return;
-    }
-    if (!data.applicant) {
-      setStatus("신청자를 입력해주세요.", "error");
-      return;
-    }
-    if (!data.usageDate) {
-      setStatus("이용일자를 선택해주세요.", "error");
-      return;
-    }
-    if (!data.headcount || data.headcount < 1) {
-      setStatus("사용 인원수를 1명 이상 입력해주세요.", "error");
-      return;
-    }
-    if (!data.location) {
-      setStatus("장소를 선택해주세요.", "error");
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = "예약 신청 처리 중...";
-
-    try {
-      const res = await fetch(API_BASE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "clubhouse_reservation", data }),
-      });
-      const json = await res.json();
-
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "예약 저장 중 오류가 발생했습니다.");
-      }
-
-      setStatus("예약 신청이 완료되었습니다.", "success");
-      document.getElementById("reservation-form").reset();
-      renderProvidedItems(DEFAULT_META.defaultProvidedItems);
-      loadRecentReservations();
-    } catch (err) {
-      setStatus(`⚠️ ${err.message}`, "error");
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "예약 신청";
-    }
-  });
-
-  // ---------- 조회 · 취소 탭 로직 ----------
-  function setManageStatus(message, type) {
-    manageStatusMsg.textContent = message;
-    manageStatusMsg.className = "status-msg" + (type ? " " + type : "");
-  }
-
-  // GET ?type=clubhouse_list&date=YYYY-MM-DD
-  async function loadManageList(dateFilter) {
-    manageList.innerHTML = `<div class="empty-msg">불러오는 중...</div>`;
-    setManageStatus("", "");
-
-    try {
-      const qs = dateFilter ? `&date=${encodeURIComponent(dateFilter)}` : "";
-      const res = await fetch(`${API_BASE}/?type=clubhouse_list${qs}`);
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "조회 실패");
-
-      const items = json.reservations || [];
-      if (items.length === 0) {
-        manageList.innerHTML = `<div class="empty-msg">${dateFilter ? "해당 날짜에 예약이 없습니다." : "등록된 예약이 없습니다."}</div>`;
-        return;
-      }
-
-      manageList.innerHTML = "";
-      items.forEach((r) => {
-        const el = document.createElement("div");
-        el.className = "list-item";
-        el.innerHTML = `
-          <div class="top-row">
-            <div class="title">${r.team} · ${r.applicant}</div>
-            <div class="date-badge">${r.usageDate}</div>
+          <div class="form-group">
+            <label for="hcDate">희망 날짜</label>
+            <input type="date" id="hcDate" class="form-control" required>
           </div>
-          <div class="details">
-            장소: ${r.location}<br />
-            인원: ${r.headcount}명<br />
-            ${r.providedItems && r.providedItems.length ? "제공품목: " + r.providedItems.join(", ") + "<br />" : ""}
-            ${r.additionalRequest ? "추가요청: " + r.additionalRequest : ""}
+
+          <div class="form-group">
+            <label for="hcTime">희망 시간대</label>
+            <select id="hcTime" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="08:00~10:00">08:00 ~ 10:00</option>
+              <option value="10:00~12:00">10:00 ~ 12:00</option>
+              <option value="12:00~14:00">12:00 ~ 14:00</option>
+              <option value="14:00~16:00">14:00 ~ 16:00</option>
+              <option value="16:00~18:00">16:00 ~ 18:00</option>
+              <option value="18:00~21:00">18:00 ~ 21:00</option>
+            </select>
           </div>
-          <button class="cancel-btn" data-id="${r.id}">예약 취소</button>
-        `;
-        manageList.appendChild(el);
-      });
 
-      manageList.querySelectorAll(".cancel-btn").forEach((btn) => {
-        btn.addEventListener("click", () => handleCancel(btn));
-      });
-    } catch (e) {
-      manageList.innerHTML = "";
-      setManageStatus(`⚠️ 예약 내역을 불러오지 못했습니다: ${e.message}`, "error");
-    }
-  }
+          <div class="form-group">
+            <label for="hcMemo">요청사항 <span style="color:#9aa0a6; font-weight:400;">(선택)</span></label>
+            <textarea id="hcMemo" class="form-control" placeholder="예: 짧게 커트 원합니다"></textarea>
+          </div>
 
-  // ---------- 예약 취소: POST { type: "clubhouse_reservation_cancel", id } ----------
-  async function handleCancel(btn) {
-    const id = btn.dataset.id;
-    const listItem = btn.closest(".list-item");
-    const title = listItem.querySelector(".title").textContent;
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">예약 신청하기</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
-    if (!confirm(`"${title}" 예약을 취소하시겠습니까?`)) return;
+  <!-- 4. 클럽하우스 / 라운지 예약 모달 -->
+  <div class="modal-overlay" id="clubhouseModal" onclick="handleModalOverlayClick(event, 'clubhouseModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Club House / Lounge 예약 신청</h2>
+        <button class="close-btn" onclick="closeModal('clubhouseModal')">&times;</button>
+      </div>
+      <div class="modal-body">
 
-    btn.disabled = true;
-    btn.textContent = "취소 처리 중...";
+        <div class="schedule-box">
+          <strong>[평일 이용 신청]</strong> 신청기한: 매일 오후 3시까지 / 운영일: 일·월·화·수<br>
+          <strong>[주말 이용 신청]</strong> 신청기한: 매주 목요일 오전 11시까지 / 운영일: 목·금·토, 한국인 공휴일(설, 추석 등)<br>
+          <strong>[문의]</strong> 조우형 과장 · 0780-929-1232
+        </div>
 
-    try {
-      const res = await fetch(API_BASE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "clubhouse_reservation_cancel", id }),
-      });
-      const json = await res.json();
+        <form id="clubhouseForm" onsubmit="handleClubhouseSubmit(event)">
+          <div class="form-group">
+            <label for="chTeam">팀명</label>
+            <select id="chTeam" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="공사팀">공사팀</option>
+              <option value="사업관리팀">사업관리팀</option>
+              <option value="관리재경팀">관리재경팀</option>
+              <option value="경호경비팀">경호경비팀</option>
+              <option value="이라크 지사">이라크 지사</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
 
-      if (!res.ok || !json.success) {
-        throw new Error(json.error || "취소 처리 중 오류가 발생했습니다.");
-      }
+          <div class="form-group">
+            <label for="chApplicant">신청자</label>
+            <input type="text" id="chApplicant" class="form-control" placeholder="예: 홍길동" required>
+          </div>
 
-      listItem.classList.add("cancelled");
-      btn.textContent = "취소됨";
-      setManageStatus("예약이 취소되었습니다.", "success");
-      loadRecentReservations();
-    } catch (e) {
-      btn.disabled = false;
-      btn.textContent = "예약 취소";
-      setManageStatus(`⚠️ ${e.message}`, "error");
-    }
-  }
+          <div class="form-group">
+            <label for="chDate">이용일자</label>
+            <input type="date" id="chDate" class="form-control" required>
+          </div>
 
-  filterApplyBtn.addEventListener("click", () => {
-    if (!filterDateInput.value) {
-      setManageStatus("조회할 날짜를 선택해주세요.", "error");
-      return;
-    }
-    loadManageList(filterDateInput.value);
-  });
+          <div class="form-group">
+            <label for="chHeadcount">사용 인원수</label>
+            <input type="number" id="chHeadcount" class="form-control" min="1" placeholder="예: 4" required>
+          </div>
 
-  filterClearBtn.addEventListener("click", () => {
-    filterDateInput.value = "";
-    loadManageList();
-  });
+          <div class="form-group">
+            <label for="chLocation">장소</label>
+            <select id="chLocation" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="Club House Hall">Club House Hall</option>
+              <option value="Club House 1-1">Club House 1-1</option>
+              <option value="Club House 1-2">Club House 1-2</option>
+              <option value="Club House 1-3">Club House 1-3</option>
+              <option value="Club House 1-4">Club House 1-4</option>
+              <option value="Club House 1-5">Club House 1-5</option>
+              <option value="Club House 1-6">Club House 1-6</option>
+              <option value="Lounge HB-01">Lounge HB-01</option>
+              <option value="Lounge HM-20">Lounge HM-20</option>
+              <option value="Lounge HM-28">Lounge HM-28</option>
+              <option value="Lounge HM-29">Lounge HM-29</option>
+              <option value="Lounge HM-30">Lounge HM-30</option>
+              <option value="Lounge HM-31">Lounge HM-31</option>
+            </select>
+          </div>
 
-  // ---------- 초기 로드 ----------
-  (function init() {
-    const today = new Date();
-    usageDateInput.value = today.toISOString().slice(0, 10);
-    loadMeta();
-    loadRecentReservations();
-  })();
-</script>
+          <div class="form-group">
+            <label>기본 제공 품목 <span style="color:#9aa0a6; font-weight:400;">(필요 없으면 체크 해제)</span></label>
+            <div class="checkbox-group" id="chItemsGroup">
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="야채" checked onchange="toggleItemPill(this)"> 야채
+              </label>
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="쌈장" checked onchange="toggleItemPill(this)"> 쌈장
+              </label>
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="기름장" checked onchange="toggleItemPill(this)"> 기름장
+              </label>
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="석식메뉴" checked onchange="toggleItemPill(this)"> 석식메뉴
+              </label>
+            </div>
+          </div>
 
+          <div class="form-group">
+            <label for="chAdditional">추가 요청사항 <span style="color:#9aa0a6; font-weight:400;">(선택)</span></label>
+            <textarea id="chAdditional" class="form-control" placeholder="예: 노래방 기기 사용, 음료 추가 등 기본 제공 품목 외 필요한 사항을 입력하세요"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">예약 신청하기</button>
+        </form>
+
+        <div style="margin-top: 24px;">
+          <label style="display:block; font-size:14px; color:#8ab4f8; margin-bottom:10px; font-weight:600;">
+            📋 최근 예약 신청 내역
+          </label>
+          <div id="clubhouseListArea">
+            <p style="color:#9aa0a6; font-size:13px;">신청 내역 불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-top">
+      <span>(주)한화 건설부문 - Bismayah New City Project (BNCP)</span>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-links">
+        <a onclick="openGuideModal()">캠프 안내서</a>
+        <a onclick="openMenuModal()">식단표</a>
+        <a onclick="openHaircutModal()">이발서비스 예약</a>
+        <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
+      </div>
+      <div>
+        <span>Camp Service Center</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>
