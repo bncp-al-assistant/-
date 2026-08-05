@@ -951,7 +951,7 @@
       </div>
       <div class="modal-body">
         <div class="schedule-box">
-          <strong>[운영 안내]</strong> 매주 금요일, 토요일 08:00 ~ 21:00 (1동)<br>
+          <strong>[운영 안내]</strong> 매주 금요일 08:00 ~ 21:00 (1동)<br>
           선착순 이용이며, <strong>팁은 절대 금지</strong>입니다.
         </div>
 
@@ -962,8 +962,19 @@
           </div>
 
           <div class="form-group">
-            <label for="hcDate">희망 날짜</label>
-            <input type="date" id="hcDate" class="form-control" required>
+            <label for="hcDate">희망 날짜 <span style="color:#9aa0a6; font-weight:400;">(금요일만 예약 가능)</span></label>
+            <select id="hcDate" class="form-control" required>
+              <option value="">선택해주세요</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="hcService">서비스 종류</label>
+            <select id="hcService" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="커트">커트</option>
+              <option value="염색">염색</option>
+            </select>
           </div>
 
           <div class="form-group">
