@@ -1,163 +1,437 @@
-/**
- * CLUB HOUSE & LOUNGE 예약 신청 Worker
- * -----------------------------------------------------
- * KV Binding 이름: CLUBHOUSE_KV  (wrangler.toml 에서 반드시 이 이름으로 연결)
- *
- * 제공 API
- *   GET    /api/reservations            -> 전체 예약 목록 조회
- *   GET    /api/reservations?date=YYYY-MM-DD  -> 특정 날짜 예약 조회
- *   POST   /api/reservations            -> 예약 신청 저장
- *   GET    /api/meta                    -> 팀/장소/기본품목 등 폼 메타데이터
- */
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CLUB HOUSE / Lounge 예약 신청</title>
+<style>
+  :root {
+    --bg: #0b0b0d;
+    --panel: #1a1a1e;
+    --panel-border: #2c2c31;
+    --field-bg: #232327;
+    --text: #f2f2f0;
+    --text-dim: #9a9a9f;
+    --accent: #e8722c;
+    --accent-dim: #7a3c17;
+    --danger: #e05252;
+    --radius: 10px;
+  }
 
-// ---- 프론트엔드(폼)에서 쓰는 고정 메타데이터 ----------------------------
-const META = {
-  teams: ["공사팀", "사업관리팀", "관리재경팀", "경호경비팀", "이라크 지사", "기타"],
-  locations: [
-    "Club House Hall",
-    "Club House 1-1",
-    "Club House 1-2",
-    "Club House 1-3",
-    "Club House 1-4",
-    "Club House 1-5",
-    "Club House 1-6",
-    "Lounge HB-01",
-    "Lounge HM-20",
-    "Lounge HM-28",
-    "Lounge HM-29",
-    "Lounge HM-30",
-    "Lounge HM-31",
-  ],
-  defaultProvidedItems: ["야채", "쌈장", "기름장", "석식메뉴"],
-};
+  * { box-sizing: border-box; }
 
-// GitHub Pages 등 외부 오리진에서 호출할 수 있도록 CORS 허용
-function corsHeaders(origin) {
-  return {
-    "Access-Control-Allow-Origin": origin || "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 64px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 640px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .card-header h1 {
+    font-size: 19px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .card-header .close {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .card-body {
+    padding: 20px 24px 28px;
+  }
+
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  select, input[type="text"], input[type="number"], input[type="date"], textarea {
+    width: 100%;
+    background: var(--field-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 11px 12px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  select:focus, input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+  }
+
+  .checkbox-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .checkbox-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--accent);
+    user-select: none;
+  }
+
+  .checkbox-pill input {
+    accent-color: var(--accent);
+    width: 14px;
+    height: 14px;
+  }
+
+  .checkbox-pill.unchecked {
+    color: var(--text-dim);
+    border-color: var(--panel-border);
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #1a0e05;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+
+  .submit-btn:disabled {
+    background: var(--accent-dim);
+    color: #cbb9a9;
+    cursor: not-allowed;
+  }
+
+  .status-msg {
+    margin-top: 10px;
+    font-size: 13px;
+    text-align: center;
+  }
+
+  .status-msg.error { color: var(--danger); }
+  .status-msg.success { color: #6fcf7f; }
+
+  .recent-section {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--panel-border);
+  }
+
+  .recent-section h2 {
+    font-size: 14px;
+    color: var(--accent);
+    margin: 0 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .recent-item {
+    background: var(--field-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+
+  .recent-item .top-row {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .recent-item .sub-row {
+    color: var(--text-dim);
+  }
+
+  .empty-msg {
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <h1>Club House / Lounge 예약 신청</h1>
+    <button class="close" onclick="window.close && window.close()">&times;</button>
+  </div>
+
+  <div class="card-body">
+    <form id="reservation-form">
+      <div class="field">
+        <label for="team">팀명</label>
+        <select id="team" required></select>
+      </div>
+
+      <div class="field">
+        <label for="applicant">신청자</label>
+        <input type="text" id="applicant" placeholder="이름을 입력하세요" required />
+      </div>
+
+      <div class="field">
+        <label for="usageDate">이용일자</label>
+        <input type="date" id="usageDate" required />
+      </div>
+
+      <div class="field">
+        <label for="headcount">사용 인원수</label>
+        <input type="number" id="headcount" min="1" placeholder="명" required />
+      </div>
+
+      <div class="field">
+        <label for="location">장소</label>
+        <select id="location" required></select>
+      </div>
+
+      <div class="field">
+        <label>기본 제공 품목 <span class="hint">(필요 없으면 체크 해제)</span></label>
+        <div class="checkbox-row" id="provided-items"></div>
+      </div>
+
+      <div class="field">
+        <label for="additionalRequest">추가 요청사항 (선택)</label>
+        <textarea id="additionalRequest" placeholder="예: 노래방 기기 사용, 음료 추가 등"></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">예약 신청</button>
+      <div class="status-msg" id="status-msg"></div>
+    </form>
+
+    <div class="recent-section">
+      <h2>📋 최근 예약 신청 내역</h2>
+      <div class="recent-list" id="recent-list">
+        <div class="empty-msg">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ⚠️ 실제 배포된 Cloudflare Worker 주소로 반드시 교체하세요.
+  // 예: "https://clubhouse-reservation-worker.<계정>.workers.dev"
+  const API_BASE = "https://YOUR-WORKER-SUBDOMAIN.workers.dev";
+
+  const DEFAULT_META = {
+    teams: ["공사팀", "사업관리팀", "관리재경팀", "경호경비팀", "이라크 지사", "기타"],
+    locations: [
+      "Club House Hall", "Club House 1-1", "Club House 1-2", "Club House 1-3",
+      "Club House 1-4", "Club House 1-5", "Club House 1-6",
+      "Lounge HB-01", "Lounge HM-20", "Lounge HM-28", "Lounge HM-29",
+      "Lounge HM-30", "Lounge HM-31"
+    ],
+    defaultProvidedItems: ["야채", "쌈장", "기름장", "석식메뉴"]
   };
-}
 
-function json(data, status = 200, origin) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      ...corsHeaders(origin),
-    },
-  });
-}
+  const teamSelect = document.getElementById("team");
+  const locationSelect = document.getElementById("location");
+  const providedItemsWrap = document.getElementById("provided-items");
+  const usageDateInput = document.getElementById("usageDate");
+  const statusMsg = document.getElementById("status-msg");
+  const submitBtn = document.getElementById("submit-btn");
+  const recentList = document.getElementById("recent-list");
 
-function badRequest(message, origin) {
-  return json({ ok: false, error: message }, 400, origin);
-}
+  function fillSelect(select, options) {
+    select.innerHTML = "";
+    options.forEach((opt) => {
+      const o = document.createElement("option");
+      o.value = opt;
+      o.textContent = opt;
+      select.appendChild(o);
+    });
+  }
 
-// 간단한 유효성 검사 (reservationFormSchema 의 required 항목 기준)
-function validateReservation(body) {
-  const errors = [];
-  if (!body.team) errors.push("팀명(team)이 필요합니다.");
-  if (!body.applicant) errors.push("신청자(applicant)가 필요합니다.");
-  if (!body.usageDate) errors.push("이용일자(usageDate)가 필요합니다.");
-  if (!body.headcount || Number(body.headcount) < 1)
-    errors.push("사용 인원수(headcount)는 1 이상이어야 합니다.");
-  if (!body.location) errors.push("장소(location)가 필요합니다.");
-  return errors;
-}
+  function renderProvidedItems(items) {
+    providedItemsWrap.innerHTML = "";
+    items.forEach((item) => {
+      const label = document.createElement("label");
+      label.className = "checkbox-pill";
+      label.innerHTML = `<input type="checkbox" value="${item}" checked /> ${item}`;
+      const checkbox = label.querySelector("input");
+      checkbox.addEventListener("change", () => {
+        label.classList.toggle("unchecked", !checkbox.checked);
+      });
+      providedItemsWrap.appendChild(label);
+    });
+  }
 
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const origin = request.headers.get("Origin");
+  function getSelectedProvidedItems() {
+    return Array.from(providedItemsWrap.querySelectorAll("input[type=checkbox]:checked")).map(
+      (el) => el.value
+    );
+  }
 
-    // Preflight
-    if (request.method === "OPTIONS") {
-      return new Response(null, { headers: corsHeaders(origin) });
+  async function loadMeta() {
+    try {
+      const res = await fetch(`${API_BASE}/api/meta`);
+      const json = await res.json();
+      if (json.ok && json.data) {
+        fillSelect(teamSelect, json.data.teams);
+        fillSelect(locationSelect, json.data.locations);
+        renderProvidedItems(json.data.defaultProvidedItems);
+        return;
+      }
+      throw new Error("메타데이터 응답 형식 오류");
+    } catch (e) {
+      console.warn("메타데이터 로드 실패, 기본값 사용:", e);
+      fillSelect(teamSelect, DEFAULT_META.teams);
+      fillSelect(locationSelect, DEFAULT_META.locations);
+      renderProvidedItems(DEFAULT_META.defaultProvidedItems);
+    }
+  }
+
+  async function loadRecentReservations() {
+    try {
+      const res = await fetch(`${API_BASE}/api/reservations`);
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "조회 실패");
+
+      const items = (json.data || []).slice(0, 5);
+      if (items.length === 0) {
+        recentList.innerHTML = `<div class="empty-msg">등록된 예약이 없습니다.</div>`;
+        return;
+      }
+
+      recentList.innerHTML = items
+        .map(
+          (r) => `
+        <div class="recent-item">
+          <div class="top-row">
+            <span>${r.team} · ${r.applicant}</span>
+            <span>${r.usageDate}</span>
+          </div>
+          <div class="sub-row">${r.location} · ${r.headcount}명${
+            r.additionalRequest ? " · " + r.additionalRequest : ""
+          }</div>
+        </div>`
+        )
+        .join("");
+    } catch (e) {
+      console.warn("예약 내역 로드 실패:", e);
+      recentList.innerHTML = `<div class="empty-msg">신청 내역을 불러오지 못했습니다.</div>`;
+    }
+  }
+
+  function setStatus(message, type) {
+    statusMsg.textContent = message;
+    statusMsg.className = "status-msg" + (type ? " " + type : "");
+  }
+
+  document.getElementById("reservation-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setStatus("", "");
+
+    const payload = {
+      team: teamSelect.value,
+      applicant: document.getElementById("applicant").value.trim(),
+      usageDate: usageDateInput.value,
+      headcount: Number(document.getElementById("headcount").value),
+      location: locationSelect.value,
+      providedItems: getSelectedProvidedItems(),
+      additionalRequest: document.getElementById("additionalRequest").value.trim(),
+    };
+
+    if (!payload.applicant || !payload.usageDate || !payload.headcount) {
+      setStatus("필수 항목을 모두 입력해주세요.", "error");
+      return;
     }
 
-    // ---- KV 바인딩 존재 여부를 가장 먼저 확인 (여기서 이전 오류가 발생했음) ----
-    if (!env.CLUBHOUSE_KV) {
-      return json(
-        {
-          ok: false,
-          error:
-            "CLUBHOUSE_KV 바인딩이 설정되지 않았습니다. Cloudflare 대시보드 > Workers & Pages > 해당 Worker > Settings > Bindings 에서 KV Namespace를 'CLUBHOUSE_KV' 라는 이름으로 연결해주세요.",
-        },
-        500,
-        origin
-      );
-    }
+    submitBtn.disabled = true;
+    submitBtn.textContent = "예약 신청 처리 중...";
 
     try {
-      // ---- 메타데이터 ----
-      if (url.pathname === "/api/meta" && request.method === "GET") {
-        return json({ ok: true, data: META }, 200, origin);
+      const res = await fetch(`${API_BASE}/api/reservations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || "예약 저장 중 오류가 발생했습니다.");
       }
 
-      // ---- 예약 목록 조회 ----
-      if (url.pathname === "/api/reservations" && request.method === "GET") {
-        const dateFilter = url.searchParams.get("date");
-        const list = await env.CLUBHOUSE_KV.list({ prefix: "reservation:" });
-
-        const items = await Promise.all(
-          list.keys.map(async (k) => {
-            const raw = await env.CLUBHOUSE_KV.get(k.name);
-            return raw ? JSON.parse(raw) : null;
-          })
-        );
-
-        let reservations = items.filter(Boolean);
-        if (dateFilter) {
-          reservations = reservations.filter((r) => r.usageDate === dateFilter);
-        }
-        // 최신순 정렬
-        reservations.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-
-        return json({ ok: true, count: reservations.length, data: reservations }, 200, origin);
-      }
-
-      // ---- 예약 신청 저장 ----
-      if (url.pathname === "/api/reservations" && request.method === "POST") {
-        let body;
-        try {
-          body = await request.json();
-        } catch (e) {
-          return badRequest("요청 본문이 올바른 JSON이 아닙니다.", origin);
-        }
-
-        const errors = validateReservation(body);
-        if (errors.length > 0) {
-          return json({ ok: false, error: errors.join(" ") }, 400, origin);
-        }
-
-        const id = crypto.randomUUID();
-        const createdAt = new Date().toISOString();
-
-        const reservation = {
-          id,
-          team: body.team,
-          applicant: body.applicant,
-          usageDate: body.usageDate,
-          headcount: Number(body.headcount),
-          location: body.location,
-          providedItems: Array.isArray(body.providedItems)
-            ? body.providedItems
-            : META.defaultProvidedItems,
-          additionalRequest: body.additionalRequest || "",
-          remarks: body.remarks || "",
-          createdAt,
-        };
-
-        await env.CLUBHOUSE_KV.put(`reservation:${createdAt}:${id}`, JSON.stringify(reservation));
-
-        return json({ ok: true, data: reservation }, 201, origin);
-      }
-
-      return json({ ok: false, error: "지원하지 않는 경로입니다." }, 404, origin);
+      setStatus("예약 신청이 완료되었습니다.", "success");
+      document.getElementById("reservation-form").reset();
+      renderProvidedItems(DEFAULT_META.defaultProvidedItems);
+      loadRecentReservations();
     } catch (err) {
-      return json({ ok: false, error: `서버 오류: ${err.message}` }, 500, origin);
+      setStatus(`⚠️ ${err.message}`, "error");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "예약 신청";
     }
-  },
-};
+  });
+
+  // 초기 로드
+  (function init() {
+    const today = new Date();
+    usageDateInput.value = today.toISOString().slice(0, 10);
+    loadMeta();
+    loadRecentReservations();
+  })();
+</script>
+
+</body>
+</html>
