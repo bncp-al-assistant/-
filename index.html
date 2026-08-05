@@ -15,6 +15,7 @@
     --accent: #e8722c;
     --accent-dim: #7a3c17;
     --danger: #e05252;
+    --danger-dim: #4a2020;
     --radius: 10px;
   }
 
@@ -61,6 +62,32 @@
     cursor: pointer;
     line-height: 1;
   }
+
+  /* 탭 */
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 14px 0;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
 
   .card-body {
     padding: 20px 24px 28px;
@@ -208,69 +235,186 @@
     color: var(--text-dim);
     font-size: 13px;
   }
+
+  /* 조회/취소 탭 전용 */
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .filter-row input[type="date"] {
+    flex: 1;
+  }
+
+  .filter-row button {
+    background: var(--field-bg);
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .filter-row button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .list-item {
+    background: var(--field-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+
+  .list-item .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .list-item .title {
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .list-item .date-badge {
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(232, 114, 44, 0.12);
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .list-item .details {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  .list-item .cancel-btn {
+    margin-top: 10px;
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .list-item .cancel-btn:hover {
+    background: var(--danger-dim);
+  }
+
+  .list-item .cancel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .list-item.cancelled {
+    opacity: 0.45;
+  }
+
+  .list-item.cancelled .cancel-btn {
+    display: none;
+  }
 </style>
 </head>
 <body>
 
 <div class="card">
   <div class="card-header">
-    <h1>Club House / Lounge 예약 신청</h1>
+    <h1>Club House / Lounge 예약</h1>
     <button class="close" onclick="window.close && window.close()">&times;</button>
   </div>
 
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="apply">예약 신청</button>
+    <button class="tab-btn" data-tab="manage">예약 조회 · 취소</button>
+  </div>
+
   <div class="card-body">
-    <form id="reservation-form">
-      <div class="field">
-        <label for="team">팀명</label>
-        <select id="team" required></select>
+
+    <!-- ===================== 예약 신청 탭 ===================== -->
+    <div class="tab-panel active" id="tab-apply">
+      <form id="reservation-form">
+        <div class="field">
+          <label for="team">팀명</label>
+          <select id="team" required></select>
+        </div>
+
+        <div class="field">
+          <label for="applicant">신청자</label>
+          <input type="text" id="applicant" placeholder="이름을 입력하세요" required />
+        </div>
+
+        <div class="field">
+          <label for="usageDate">이용일자</label>
+          <input type="date" id="usageDate" required />
+        </div>
+
+        <div class="field">
+          <label for="headcount">사용 인원수</label>
+          <input type="number" id="headcount" min="1" placeholder="명" required />
+        </div>
+
+        <div class="field">
+          <label for="location">장소</label>
+          <select id="location" required></select>
+        </div>
+
+        <div class="field">
+          <label>기본 제공 품목 <span class="hint">(필요 없으면 체크 해제)</span></label>
+          <div class="checkbox-row" id="provided-items"></div>
+        </div>
+
+        <div class="field">
+          <label for="additionalRequest">추가 요청사항 (선택)</label>
+          <textarea id="additionalRequest" placeholder="예: 노래방 기기 사용, 음료 추가 등"></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">예약 신청</button>
+        <div class="status-msg" id="status-msg"></div>
+      </form>
+
+      <div class="recent-section">
+        <h2>📋 최근 예약 신청 내역</h2>
+        <div class="recent-list" id="recent-list">
+          <div class="empty-msg">불러오는 중...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== 예약 조회·취소 탭 ===================== -->
+    <div class="tab-panel" id="tab-manage">
+      <div class="filter-row">
+        <input type="date" id="filter-date" />
+        <button type="button" id="filter-apply-btn">날짜로 조회</button>
+        <button type="button" id="filter-clear-btn">전체 보기</button>
       </div>
 
-      <div class="field">
-        <label for="applicant">신청자</label>
-        <input type="text" id="applicant" placeholder="이름을 입력하세요" required />
-      </div>
+      <div class="status-msg" id="manage-status-msg"></div>
 
-      <div class="field">
-        <label for="usageDate">이용일자</label>
-        <input type="date" id="usageDate" required />
-      </div>
-
-      <div class="field">
-        <label for="headcount">사용 인원수</label>
-        <input type="number" id="headcount" min="1" placeholder="명" required />
-      </div>
-
-      <div class="field">
-        <label for="location">장소</label>
-        <select id="location" required></select>
-      </div>
-
-      <div class="field">
-        <label>기본 제공 품목 <span class="hint">(필요 없으면 체크 해제)</span></label>
-        <div class="checkbox-row" id="provided-items"></div>
-      </div>
-
-      <div class="field">
-        <label for="additionalRequest">추가 요청사항 (선택)</label>
-        <textarea id="additionalRequest" placeholder="예: 노래방 기기 사용, 음료 추가 등"></textarea>
-      </div>
-
-      <button type="submit" class="submit-btn" id="submit-btn">예약 신청</button>
-      <div class="status-msg" id="status-msg"></div>
-    </form>
-
-    <div class="recent-section">
-      <h2>📋 최근 예약 신청 내역</h2>
-      <div class="recent-list" id="recent-list">
+      <div id="manage-list">
         <div class="empty-msg">불러오는 중...</div>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
   // ⚠️ 실제 배포된 Cloudflare Worker 주소로 반드시 교체하세요.
-  // 예: "https://clubhouse-reservation-worker.<계정>.workers.dev"
   const API_BASE = "https://YOUR-WORKER-SUBDOMAIN.workers.dev";
 
   const DEFAULT_META = {
@@ -284,6 +428,26 @@
     defaultProvidedItems: ["야채", "쌈장", "기름장", "석식메뉴"]
   };
 
+  // ---------- 탭 전환 ----------
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabPanels = {
+    apply: document.getElementById("tab-apply"),
+    manage: document.getElementById("tab-manage"),
+  };
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      Object.values(tabPanels).forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      tabPanels[btn.dataset.tab].classList.add("active");
+      if (btn.dataset.tab === "manage") {
+        loadManageList();
+      }
+    });
+  });
+
+  // ---------- 신청 탭 요소 ----------
   const teamSelect = document.getElementById("team");
   const locationSelect = document.getElementById("location");
   const providedItemsWrap = document.getElementById("provided-items");
@@ -291,6 +455,13 @@
   const statusMsg = document.getElementById("status-msg");
   const submitBtn = document.getElementById("submit-btn");
   const recentList = document.getElementById("recent-list");
+
+  // ---------- 조회·취소 탭 요소 ----------
+  const filterDateInput = document.getElementById("filter-date");
+  const filterApplyBtn = document.getElementById("filter-apply-btn");
+  const filterClearBtn = document.getElementById("filter-clear-btn");
+  const manageStatusMsg = document.getElementById("manage-status-msg");
+  const manageList = document.getElementById("manage-list");
 
   function fillSelect(select, options) {
     select.innerHTML = "";
@@ -424,7 +595,104 @@
     }
   });
 
-  // 초기 로드
+  // ---------- 조회 · 취소 탭 로직 ----------
+  function setManageStatus(message, type) {
+    manageStatusMsg.textContent = message;
+    manageStatusMsg.className = "status-msg" + (type ? " " + type : "");
+  }
+
+  async function loadManageList(dateFilter) {
+    manageList.innerHTML = `<div class="empty-msg">불러오는 중...</div>`;
+    setManageStatus("", "");
+
+    try {
+      const qs = dateFilter ? `?date=${encodeURIComponent(dateFilter)}` : "";
+      const res = await fetch(`${API_BASE}/api/reservations${qs}`);
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || "조회 실패");
+
+      const items = json.data || [];
+      if (items.length === 0) {
+        manageList.innerHTML = `<div class="empty-msg">${
+          dateFilter ? "해당 날짜에 예약이 없습니다." : "등록된 예약이 없습니다."
+        }</div>`;
+        return;
+      }
+
+      manageList.innerHTML = "";
+      items.forEach((r) => {
+        const el = document.createElement("div");
+        el.className = "list-item";
+        el.innerHTML = `
+          <div class="top-row">
+            <div class="title">${r.team} · ${r.applicant}</div>
+            <div class="date-badge">${r.usageDate}</div>
+          </div>
+          <div class="details">
+            장소: ${r.location}<br />
+            인원: ${r.headcount}명<br />
+            ${r.providedItems && r.providedItems.length ? "제공품목: " + r.providedItems.join(", ") + "<br />" : ""}
+            ${r.additionalRequest ? "추가요청: " + r.additionalRequest : ""}
+          </div>
+          <button class="cancel-btn" data-id="${r.id}">예약 취소</button>
+        `;
+        manageList.appendChild(el);
+      });
+
+      manageList.querySelectorAll(".cancel-btn").forEach((btn) => {
+        btn.addEventListener("click", () => handleCancel(btn, dateFilter));
+      });
+    } catch (e) {
+      manageList.innerHTML = "";
+      setManageStatus(`⚠️ 예약 내역을 불러오지 못했습니다: ${e.message}`, "error");
+    }
+  }
+
+  async function handleCancel(btn, currentDateFilter) {
+    const id = btn.dataset.id;
+    const listItem = btn.closest(".list-item");
+    const title = listItem.querySelector(".title").textContent;
+
+    if (!confirm(`"${title}" 예약을 취소하시겠습니까?`)) return;
+
+    btn.disabled = true;
+    btn.textContent = "취소 처리 중...";
+
+    try {
+      const res = await fetch(`${API_BASE}/api/reservations?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || "취소 처리 중 오류가 발생했습니다.");
+      }
+
+      listItem.classList.add("cancelled");
+      btn.textContent = "취소됨";
+      setManageStatus("예약이 취소되었습니다.", "success");
+      loadRecentReservations();
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = "예약 취소";
+      setManageStatus(`⚠️ ${e.message}`, "error");
+    }
+  }
+
+  filterApplyBtn.addEventListener("click", () => {
+    if (!filterDateInput.value) {
+      setManageStatus("조회할 날짜를 선택해주세요.", "error");
+      return;
+    }
+    loadManageList(filterDateInput.value);
+  });
+
+  filterClearBtn.addEventListener("click", () => {
+    filterDateInput.value = "";
+    loadManageList();
+  });
+
+  // ---------- 초기 로드 ----------
   (function init() {
     const today = new Date();
     usageDateInput.value = today.toISOString().slice(0, 10);
