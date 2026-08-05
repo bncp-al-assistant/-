@@ -723,10 +723,19 @@
       min-height: 50px;
     }
 
+    #chDateListArea {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     #chDateListArea .res-item {
       font-size: 12px;
       padding: 8px 10px;
-      margin-bottom: 6px;
+      margin-bottom: 0;
+      flex: 1 1 180px;
+      max-width: 220px;
+      box-sizing: border-box;
     }
 
     #chDateListArea .res-cancel-btn {
