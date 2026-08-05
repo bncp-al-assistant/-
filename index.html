@@ -521,140 +521,6 @@
       color: #8ab4f8;
     }
 
-    /* ===== 클럽하우스 예약 - 달력 위젯 ===== */
-    .ch-calendar {
-      background-color: #202124;
-      border: 1px solid #3c4043;
-      border-radius: 8px;
-      padding: 10px;
-      max-width: 280px;
-      margin: 0 auto;
-    }
-
-    .ch-calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-
-    .ch-calendar-header button {
-      background: none;
-      border: 1px solid #3c4043;
-      color: #8ab4f8;
-      font-size: 13px;
-      cursor: pointer;
-      padding: 1px 9px;
-      border-radius: 5px;
-      line-height: 1.5;
-    }
-
-    .ch-calendar-header button:hover {
-      border-color: #8ab4f8;
-    }
-
-    .ch-calendar-header span {
-      font-size: 13px;
-      font-weight: 600;
-      color: #e8eaed;
-    }
-
-    .ch-calendar-weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      text-align: center;
-      font-size: 10px;
-      color: #9aa0a6;
-      margin-bottom: 3px;
-    }
-
-    .ch-calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-    }
-
-    .ch-day {
-      position: relative;
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 5px;
-      font-size: 12px;
-      color: #e8eaed;
-      cursor: pointer;
-      background-color: #171717;
-      border: 1px solid transparent;
-    }
-
-    .ch-day.empty {
-      visibility: hidden;
-      cursor: default;
-    }
-
-    .ch-day.past {
-      color: #5f6368;
-      cursor: not-allowed;
-    }
-
-    .ch-day:hover:not(.empty):not(.past) {
-      border-color: #8ab4f8;
-    }
-
-    .ch-day.today {
-      border-color: #5f6368;
-    }
-
-    .ch-day.selected {
-      background-color: #ff6b00;
-      color: #ffffff;
-      font-weight: 700;
-    }
-
-    .ch-day .ch-dot {
-      position: absolute;
-      bottom: 2px;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background-color: #8ab4f8;
-    }
-
-    .ch-day.selected .ch-dot {
-      background-color: #ffffff;
-    }
-
-    .ch-calendar-legend {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 8px;
-      font-size: 11px;
-      color: #9aa0a6;
-    }
-
-    .ch-calendar-legend .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background-color: #8ab4f8;
-      display: inline-block;
-    }
-
-    .ch-selected-date {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #8ab4f8;
-      min-height: 18px;
-      line-height: 1.6;
-    }
-
-    .ch-selected-date .booked-info {
-      color: #f28b30;
-    }
-
     footer {
       background-color: #171717;
       color: #9aa0a6;
@@ -907,111 +773,89 @@
           <strong>[문의]</strong> 조우형 과장 · 0780-929-1232
         </div>
 
-        <!-- ===== 달력 (항상 보임) ===== -->
-        <div class="ch-calendar" id="chCalendarWrap">
-          <div class="ch-calendar-header">
-            <button type="button" onclick="changeCalendarMonth(-1)">‹</button>
-            <span id="chCalendarLabel"></span>
-            <button type="button" onclick="changeCalendarMonth(1)">›</button>
+        <form id="clubhouseForm" onsubmit="handleClubhouseSubmit(event)">
+          <div class="form-group">
+            <label for="chTeam">팀명</label>
+            <select id="chTeam" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="공사팀">공사팀</option>
+              <option value="사업관리팀">사업관리팀</option>
+              <option value="관리재경팀">관리재경팀</option>
+              <option value="경호경비팀">경호경비팀</option>
+              <option value="이라크 지사">이라크 지사</option>
+              <option value="기타">기타</option>
+            </select>
           </div>
-          <div class="ch-calendar-weekdays">
-            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+
+          <div class="form-group">
+            <label for="chApplicant">신청자</label>
+            <input type="text" id="chApplicant" class="form-control" placeholder="예: 홍길동" required>
           </div>
-          <div class="ch-calendar-grid" id="chCalendarGrid"></div>
-          <div class="ch-calendar-legend">
-            <span class="dot"></span> 이미 예약이 있는 날짜
+
+          <div class="form-group">
+            <label for="chDate">이용일자</label>
+            <input type="date" id="chDate" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="chHeadcount">사용 인원수</label>
+            <input type="number" id="chHeadcount" class="form-control" min="1" placeholder="예: 4" required>
+          </div>
+
+          <div class="form-group">
+            <label for="chLocation">장소</label>
+            <select id="chLocation" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="Club House Hall">Club House Hall</option>
+              <option value="Club House 1-1">Club House 1-1</option>
+              <option value="Club House 1-2">Club House 1-2</option>
+              <option value="Club House 1-3">Club House 1-3</option>
+              <option value="Club House 1-4">Club House 1-4</option>
+              <option value="Club House 1-5">Club House 1-5</option>
+              <option value="Club House 1-6">Club House 1-6</option>
+              <option value="Lounge HB-01">Lounge HB-01</option>
+              <option value="Lounge HM-20">Lounge HM-20</option>
+              <option value="Lounge HM-28">Lounge HM-28</option>
+              <option value="Lounge HM-29">Lounge HM-29</option>
+              <option value="Lounge HM-30">Lounge HM-30</option>
+              <option value="Lounge HM-31">Lounge HM-31</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>기본 제공 품목 <span style="color:#9aa0a6; font-weight:400;">(필요 없으면 체크 해제)</span></label>
+            <div class="checkbox-group" id="chItemsGroup">
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="야채" checked onchange="toggleItemPill(this)"> 야채
+              </label>
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="쌈장" checked onchange="toggleItemPill(this)"> 쌈장
+              </label>
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="기름장" checked onchange="toggleItemPill(this)"> 기름장
+              </label>
+              <label class="checkbox-pill checked">
+                <input type="checkbox" name="chItems" value="석식메뉴" checked onchange="toggleItemPill(this)"> 석식메뉴
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="chAdditional">추가 요청사항 <span style="color:#9aa0a6; font-weight:400;">(선택)</span></label>
+            <textarea id="chAdditional" class="form-control" placeholder="예: 노래방 기기 사용, 음료 추가 등 기본 제공 품목 외 필요한 사항을 입력하세요"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">예약 신청하기</button>
+        </form>
+
+        <div style="margin-top: 24px;">
+          <label style="display:block; font-size:14px; color:#8ab4f8; margin-bottom:10px; font-weight:600;">
+            📋 최근 예약 신청 내역
+          </label>
+          <div id="clubhouseListArea">
+            <p style="color:#9aa0a6; font-size:13px;">신청 내역 불러오는 중...</p>
           </div>
         </div>
-        <p id="chCalendarHint" style="margin-top:14px; font-size:13px; color:#9aa0a6; text-align:center;">
-          날짜를 클릭하면 아래에 그 날짜의 예약 현황과 신청 폼이 표시됩니다.
-        </p>
-
-        <!-- ===== 날짜 클릭 시 하단에 표시되는 상세 (조회 + 신청) ===== -->
-        <div id="chDateDetailArea" style="display:none; margin-top:20px; padding-top:20px; border-top:1px solid #3c4043;">
-          <h3 id="chDetailDateLabel" style="color:#8ab4f8; font-size:16px; margin-bottom:14px;"></h3>
-
-          <div style="margin-bottom: 22px;">
-            <label style="display:block; font-size:14px; color:#8ab4f8; margin-bottom:10px; font-weight:600;">
-              📋 이 날짜의 예약 현황
-            </label>
-            <div id="chDateListArea">
-              <p style="color:#9aa0a6; font-size:13px;">불러오는 중...</p>
-            </div>
-          </div>
-
-          <form id="clubhouseForm" onsubmit="handleClubhouseSubmit(event)">
-            <input type="hidden" id="chDate" required>
-
-            <div class="form-group">
-              <label for="chTeam">팀명</label>
-              <select id="chTeam" class="form-control" required>
-                <option value="">선택해주세요</option>
-                <option value="공사팀">공사팀</option>
-                <option value="사업관리팀">사업관리팀</option>
-                <option value="관리재경팀">관리재경팀</option>
-                <option value="경호경비팀">경호경비팀</option>
-                <option value="이라크 지사">이라크 지사</option>
-                <option value="기타">기타</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="chApplicant">신청자</label>
-              <input type="text" id="chApplicant" class="form-control" placeholder="예: 홍길동" required>
-            </div>
-
-            <div class="form-group">
-              <label for="chHeadcount">사용 인원수</label>
-              <input type="number" id="chHeadcount" class="form-control" min="1" placeholder="예: 4" required>
-            </div>
-
-            <div class="form-group">
-              <label for="chLocation">장소</label>
-              <select id="chLocation" class="form-control" required>
-                <option value="">선택해주세요</option>
-                <option value="Club House Hall">Club House Hall</option>
-                <option value="Club House 1-1">Club House 1-1</option>
-                <option value="Club House 1-2">Club House 1-2</option>
-                <option value="Club House 1-3">Club House 1-3</option>
-                <option value="Club House 1-4">Club House 1-4</option>
-                <option value="Club House 1-5">Club House 1-5</option>
-                <option value="Club House 1-6">Club House 1-6</option>
-                <option value="Lounge HB-01">Lounge HB-01</option>
-                <option value="Lounge HM-20">Lounge HM-20</option>
-                <option value="Lounge HM-28">Lounge HM-28</option>
-                <option value="Lounge HM-29">Lounge HM-29</option>
-                <option value="Lounge HM-30">Lounge HM-30</option>
-                <option value="Lounge HM-31">Lounge HM-31</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label>기본 제공 품목 <span style="color:#9aa0a6; font-weight:400;">(필요 없으면 체크 해제)</span></label>
-              <div class="checkbox-group" id="chItemsGroup">
-                <label class="checkbox-pill checked">
-                  <input type="checkbox" name="chItems" value="야채" checked onchange="toggleItemPill(this)"> 야채
-                </label>
-                <label class="checkbox-pill checked">
-                  <input type="checkbox" name="chItems" value="쌈장" checked onchange="toggleItemPill(this)"> 쌈장
-                </label>
-                <label class="checkbox-pill checked">
-                  <input type="checkbox" name="chItems" value="기름장" checked onchange="toggleItemPill(this)"> 기름장
-                </label>
-                <label class="checkbox-pill checked">
-                  <input type="checkbox" name="chItems" value="석식메뉴" checked onchange="toggleItemPill(this)"> 석식메뉴
-                </label>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="chAdditional">추가 요청사항 <span style="color:#9aa0a6; font-weight:400;">(선택)</span></label>
-              <textarea id="chAdditional" class="form-control" placeholder="예: 노래방 기기 사용, 음료 추가 등 기본 제공 품목 외 필요한 사항을 입력하세요"></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">이 날짜로 예약 신청하기</button>
-          </form>
-        </div>
-
       </div>
     </div>
   </div>
