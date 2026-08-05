@@ -526,25 +526,27 @@
       background-color: #202124;
       border: 1px solid #3c4043;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
+      max-width: 280px;
+      margin: 0 auto;
     }
 
     .ch-calendar-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .ch-calendar-header button {
       background: none;
       border: 1px solid #3c4043;
       color: #8ab4f8;
-      font-size: 16px;
+      font-size: 13px;
       cursor: pointer;
-      padding: 2px 12px;
-      border-radius: 6px;
-      line-height: 1.6;
+      padding: 1px 9px;
+      border-radius: 5px;
+      line-height: 1.5;
     }
 
     .ch-calendar-header button:hover {
@@ -552,7 +554,7 @@
     }
 
     .ch-calendar-header span {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       color: #e8eaed;
     }
@@ -561,15 +563,15 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      font-size: 11px;
+      font-size: 10px;
       color: #9aa0a6;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .ch-calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
+      gap: 2px;
     }
 
     .ch-day {
@@ -578,8 +580,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 6px;
-      font-size: 13px;
+      border-radius: 5px;
+      font-size: 12px;
       color: #e8eaed;
       cursor: pointer;
       background-color: #171717;
@@ -612,9 +614,9 @@
 
     .ch-day .ch-dot {
       position: absolute;
-      bottom: 3px;
-      width: 5px;
-      height: 5px;
+      bottom: 2px;
+      width: 4px;
+      height: 4px;
       border-radius: 50%;
       background-color: #8ab4f8;
     }
@@ -626,8 +628,9 @@
     .ch-calendar-legend {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      margin-top: 10px;
+      margin-top: 8px;
       font-size: 11px;
       color: #9aa0a6;
     }
@@ -904,30 +907,27 @@
           <strong>[문의]</strong> 조우형 과장 · 0780-929-1232
         </div>
 
-        <!-- ===== STEP 1: 달력 화면 ===== -->
-        <div id="chStepCalendar">
-          <div class="ch-calendar" id="chCalendarWrap">
-            <div class="ch-calendar-header">
-              <button type="button" onclick="changeCalendarMonth(-1)">‹</button>
-              <span id="chCalendarLabel"></span>
-              <button type="button" onclick="changeCalendarMonth(1)">›</button>
-            </div>
-            <div class="ch-calendar-weekdays">
-              <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-            </div>
-            <div class="ch-calendar-grid" id="chCalendarGrid"></div>
-            <div class="ch-calendar-legend">
-              <span class="dot"></span> 이미 예약이 있는 날짜
-            </div>
+        <!-- ===== 달력 (항상 보임) ===== -->
+        <div class="ch-calendar" id="chCalendarWrap">
+          <div class="ch-calendar-header">
+            <button type="button" onclick="changeCalendarMonth(-1)">‹</button>
+            <span id="chCalendarLabel"></span>
+            <button type="button" onclick="changeCalendarMonth(1)">›</button>
           </div>
-          <p style="margin-top:14px; font-size:13px; color:#9aa0a6; text-align:center;">
-            날짜를 선택하면 해당 날짜의 예약 현황 조회 및 신청이 가능합니다.
-          </p>
+          <div class="ch-calendar-weekdays">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div class="ch-calendar-grid" id="chCalendarGrid"></div>
+          <div class="ch-calendar-legend">
+            <span class="dot"></span> 이미 예약이 있는 날짜
+          </div>
         </div>
+        <p id="chCalendarHint" style="margin-top:14px; font-size:13px; color:#9aa0a6; text-align:center;">
+          날짜를 클릭하면 아래에 그 날짜의 예약 현황과 신청 폼이 표시됩니다.
+        </p>
 
-        <!-- ===== STEP 2: 날짜별 상세 (조회 + 신청) ===== -->
-        <div id="chStepDetail" style="display:none;">
-          <button type="button" class="btn" style="margin-bottom:14px;" onclick="showCalendarStep()">‹ 다른 날짜 선택</button>
+        <!-- ===== 날짜 클릭 시 하단에 표시되는 상세 (조회 + 신청) ===== -->
+        <div id="chDateDetailArea" style="display:none; margin-top:20px; padding-top:20px; border-top:1px solid #3c4043;">
           <h3 id="chDetailDateLabel" style="color:#8ab4f8; font-size:16px; margin-bottom:14px;"></h3>
 
           <div style="margin-bottom: 22px;">
