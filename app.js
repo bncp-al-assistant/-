@@ -273,20 +273,23 @@ function renderCalendar() {
   }
 }
 
-// ---- STEP 전환 ----
+// ---- 날짜 클릭 시 하단 영역 표시/갱신 ----
 
 function showCalendarStep() {
+  // 선택 해제하고 하단 상세 영역을 다시 숨김 (필요 시 사용)
   chCalendarSelectedDate = null;
-  document.getElementById('chStepCalendar').style.display = 'block';
-  document.getElementById('chStepDetail').style.display = 'none';
+  document.getElementById('chDateDetailArea').style.display = 'none';
+  document.getElementById('chCalendarHint').style.display = 'block';
   renderCalendar();
 }
 
 async function showDetailStep(dateStr) {
   chCalendarSelectedDate = dateStr;
+  renderCalendar(); // 선택된 날짜 하이라이트 갱신
 
-  document.getElementById('chStepCalendar').style.display = 'none';
-  document.getElementById('chStepDetail').style.display = 'block';
+  document.getElementById('chCalendarHint').style.display = 'none';
+  const detailArea = document.getElementById('chDateDetailArea');
+  detailArea.style.display = 'block';
 
   const dateLabel = document.getElementById('chDetailDateLabel');
   if (dateLabel) dateLabel.textContent = `📅 ${dateStr} 예약 현황 및 신청`;
@@ -298,6 +301,9 @@ async function showDetailStep(dateStr) {
   document.getElementById('chDate').value = dateStr;
 
   await loadDateReservationList(dateStr);
+
+  // 하단 영역으로 자연스럽게 스크롤 이동
+  detailArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 
@@ -380,7 +386,7 @@ function openHaircutModal() {
 async function openClubhouseModal() {
   document.getElementById('clubhouseModal').style.display = 'flex';
 
-  // 항상 달력 화면(STEP 1)부터 시작
+  // 하단 상세 영역은 닫힌 상태로 시작
   showCalendarStep();
 
   chCalendarViewDate = new Date();
