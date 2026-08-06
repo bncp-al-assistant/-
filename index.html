@@ -795,6 +795,7 @@
     <a onclick="openGuideModal()">캠프/업무 안내</a>
     <a onclick="openMenuModal()">주간 식단표</a>
     <a onclick="openHaircutModal()">이발서비스 예약</a>
+    <a onclick="openRepairModal()">숙소 수리요청</a>
     <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
     <div class="profile-icon">한화</div>
   </header>
@@ -814,6 +815,7 @@
       <button class="btn" onclick="openMenuModal()">주간 식단표</button>
       <button class="btn" onclick="openGuideModal()">캠프 생활/업무 안내</button>
       <button class="btn" onclick="openHaircutModal()">이발서비스 예약</button>
+      <button class="btn" onclick="openRepairModal()">숙소 수리요청</button>
       <button class="btn" onclick="openClubhouseModal()">클럽하우스/라운지 예약</button>
     </div>
 
@@ -1001,6 +1003,68 @@
     </div>
   </div>
 
+  <!-- 3-1. 숙소 수리요청 모달 -->
+  <div class="modal-overlay" id="repairModal" onclick="handleModalOverlayClick(event, 'repairModal')">
+    <div class="modal-content" style="max-width: 560px;">
+      <div class="modal-header">
+        <h2>🔧 숙소 수리요청</h2>
+        <button class="close-btn" onclick="closeModal('repairModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="schedule-box">
+          접수된 요청은 담당자에게 전달되며, 처리 순서에 따라 방문 수리가 진행됩니다.<br>
+          <strong>[문의]</strong> 캠프 오피스(1동) · 0780-929-1232
+        </div>
+
+        <form id="repairForm" onsubmit="handleRepairSubmit(event)">
+          <div class="form-group">
+            <label for="rpApplicant">신청자</label>
+            <input type="text" id="rpApplicant" class="form-control" placeholder="예: 홍길동" required>
+          </div>
+
+          <div class="form-group">
+            <label for="rpRoom">동/호수</label>
+            <input type="text" id="rpRoom" class="form-control" placeholder="예: 2동 305호" required>
+          </div>
+
+          <div class="form-group">
+            <label for="rpType">수리 유형</label>
+            <select id="rpType" class="form-control" required>
+              <option value="">선택해주세요</option>
+              <option value="전기">전기 (조명, 콘센트 등)</option>
+              <option value="배관/누수">배관/누수</option>
+              <option value="에어컨/냉난방">에어컨/냉난방</option>
+              <option value="가구/집기">가구/집기</option>
+              <option value="도어/잠금장치">도어/잠금장치</option>
+              <option value="기타">기타</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="rpDescription">상세 내용</label>
+            <textarea id="rpDescription" class="form-control" placeholder="예: 화장실 세면대에서 물이 새고 있습니다." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="rpContact">연락처 <span style="color:#9aa0a6; font-weight:400;">(선택, 내선/휴대폰)</span></label>
+            <input type="text" id="rpContact" class="form-control" placeholder="예: 내선 1234">
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">수리요청 제출</button>
+        </form>
+
+        <div style="margin-top: 24px;">
+          <label style="display:block; font-size:14px; color:#8ab4f8; margin-bottom:10px; font-weight:600;">
+            📋 접수된 수리요청 (미처리)
+          </label>
+          <div id="repairListArea">
+            <p style="color:#9aa0a6; font-size:13px;">불러오는 중...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 4. 클럽하우스 / 라운지 예약 모달 -->
   <div class="modal-overlay" id="clubhouseModal" onclick="handleModalOverlayClick(event, 'clubhouseModal')">
     <div class="modal-content" style="max-width: 1180px;">
@@ -1143,6 +1207,7 @@
         <a onclick="openGuideModal()">캠프 안내서</a>
         <a onclick="openMenuModal()">식단표</a>
         <a onclick="openHaircutModal()">이발서비스 예약</a>
+        <a onclick="openRepairModal()">숙소 수리요청</a>
         <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
       </div>
       <div>
