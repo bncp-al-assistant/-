@@ -953,8 +953,8 @@
       </div>
       <div class="modal-body">
         <div class="schedule-box">
-          <strong>[운영 안내]</strong> 매주 금요일 08:00 ~ 21:00 (1동)<br>
-          선착순 이용이며, <strong>팁은 절대 금지</strong>입니다.
+          <strong>[운영 안내]</strong> 매주 금요일 운영 시간은 <strong>10:00 ~ 18:00, 선착순</strong>으로 예약 지정입니다.<br>
+          예약은 40분 단위로 진행되며, <strong>팁은 절대 금지</strong>입니다.
         </div>
 
         <form id="haircutForm" onsubmit="handleHaircutSubmit(event)">
@@ -980,21 +980,10 @@
           </div>
 
           <div class="form-group">
-            <label for="hcTime">희망 시간대</label>
+            <label for="hcTime">희망 시간대 <span style="color:#9aa0a6; font-weight:400;">(40분 단위)</span></label>
             <select id="hcTime" class="form-control" required>
               <option value="">선택해주세요</option>
-              <option value="08:00~10:00">08:00 ~ 10:00</option>
-              <option value="10:00~12:00">10:00 ~ 12:00</option>
-              <option value="12:00~14:00">12:00 ~ 14:00</option>
-              <option value="14:00~16:00">14:00 ~ 16:00</option>
-              <option value="16:00~18:00">16:00 ~ 18:00</option>
-              <option value="18:00~21:00">18:00 ~ 21:00</option>
             </select>
-          </div>
-
-          <div class="form-group">
-            <label for="hcMemo">요청사항 <span style="color:#9aa0a6; font-weight:400;">(선택)</span></label>
-            <textarea id="hcMemo" class="form-control" placeholder="예: 짧게 커트 원합니다"></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">예약 신청하기</button>
