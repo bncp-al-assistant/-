@@ -420,6 +420,140 @@ function populateHaircutFridays() {
   });
 }
 
+// ---- 숙소 수리요청 ----
+
+async function openRepairModal() {
+  document.getElementById('repairModal').style.display = 'flex';
+  await loadRepairList();
+}
+
+async function loadRepairList() {
+  const listArea = document.getElementById('repairListArea');
+  if (!listArea) return;
+  listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">불러오는 중...</p>';
+
+  try {
+    const response = await fetch(BACKEND_API_URL + "?type=repair_list", { cache: "no-store" });
+    if (!response.ok) throw new Error("서버 응답 오류: " + response.status);
+    const data = await response.json();
+    renderRepairList(data.requests || []);
+  } catch (err) {
+    console.error("숙소 수리요청 조회 에러:", err);
+    listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">목록을 불러오지 못했습니다.</p>';
+  }
+}
+
+function renderRepairList(requests) {
+  const listArea = document.getElementById('repairListArea');
+  if (!listArea) return;
+
+  if (!requests || requests.length === 0) {
+    listArea.innerHTML = '<p style="color:#9aa0a6; font-size:13px;">접수된 수리요청이 없습니다.</p>';
+    return;
+  }
+
+  const rows = requests.map(r => {
+    const submitted = r.submittedAt ? new Date(r.submittedAt).toLocaleString('ko-KR') : '';
+    return `
+      <div class="res-item" data-repair-id="${escapeHTML(r.id)}">
+        <div style="color:#8ab4f8; font-weight:600; margin-bottom:4px;">
+          ${escapeHTML(r.roomLocation)} · ${escapeHTML(r.repairType)}
+        </div>
+        <div>신청자: ${escapeHTML(r.applicant)}${r.contact ? ' / 연락처: ' + escapeHTML(r.contact) : ''}</div>
+        <div>내용: ${escapeHTML(r.description)}</div>
+        <div style="color:#5f6368; font-size:11px; margin-top:4px;">접수: ${escapeHTML(submitted)}</div>
+        <button class="res-cancel-btn" onclick="handleRepairComplete('${escapeHTML(r.id)}', this)">처리 완료</button>
+      </div>
+    `;
+  }).join('');
+
+  listArea.innerHTML = rows;
+}
+
+async function handleRepairSubmit(e) {
+  e.preventDefault();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const applicant = document.getElementById('rpApplicant').value.trim();
+  const roomLocation = document.getElementById('rpRoom').value.trim();
+  const repairType = document.getElementById('rpType').value;
+  const description = document.getElementById('rpDescription').value.trim();
+  const contact = document.getElementById('rpContact').value.trim();
+
+  if (!applicant) { alert('신청자를 입력해주세요.'); return; }
+  if (!roomLocation) { alert('동/호수를 입력해주세요.'); return; }
+  if (!repairType) { alert('수리 유형을 선택해주세요.'); return; }
+  if (!description) { alert('상세 내용을 입력해주세요.'); return; }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = '제출 중...';
+  }
+
+  try {
+    const response = await fetch(BACKEND_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'repair_request',
+        data: { applicant, roomLocation, repairType, description, contact }
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || '수리요청 저장에 실패했습니다.');
+    }
+
+    alert(`[숙소 수리요청 접수 완료]\n동/호수: ${roomLocation}\n유형: ${repairType}\n\n담당자 확인 후 순차적으로 처리됩니다.`);
+
+    document.getElementById('repairForm').reset();
+    await loadRepairList();
+
+  } catch (err) {
+    console.error('숙소 수리요청 저장 에러:', err);
+    alert('⚠️ ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '수리요청 제출';
+    }
+  }
+}
+
+async function handleRepairComplete(id, btn) {
+  if (!confirm('이 요청을 처리 완료 처리하시겠습니까?')) return;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '처리 중...';
+  }
+
+  try {
+    const response = await fetch(BACKEND_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'repair_complete', id })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || '처리 완료 처리에 실패했습니다.');
+    }
+
+    await loadRepairList();
+  } catch (err) {
+    console.error('숙소 수리요청 완료 처리 에러:', err);
+    alert('⚠️ ' + err.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '처리 완료';
+    }
+  }
+}
+
 async function openClubhouseModal() {
   document.getElementById('clubhouseModal').style.display = 'flex';
 
@@ -670,6 +804,7 @@ document.addEventListener('keydown', (e) => {
     closeModal('menuModal');
     closeModal('guideModal');
     closeModal('haircutModal');
+    closeModal('repairModal');
     closeModal('clubhouseModal');
   }
 });
