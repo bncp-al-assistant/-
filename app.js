@@ -454,8 +454,15 @@ function renderRepairList(requests) {
     return;
   }
 
-  const rows = requests.map(r => {
+  const pending = requests.filter(r => r.status !== '완료');
+  const completed = requests.filter(r => r.status === '완료');
+
+  const buildCard = (r, isCompleted) => {
     const submitted = r.submittedAt ? new Date(r.submittedAt).toLocaleString('ko-KR') : '';
+    const actionHtml = isCompleted
+      ? `<div style="color:#6fcf7f; font-size:11px; margin-top:6px;">✅ 처리 완료됨${r.completedAt ? ' · ' + new Date(r.completedAt).toLocaleString('ko-KR') : ''}</div>`
+      : `<button class="res-cancel-btn" onclick="handleRepairComplete('${escapeHTML(r.id)}', this)">처리 완료</button>`;
+
     return `
       <div class="res-item" data-repair-id="${escapeHTML(r.id)}">
         <div style="color:#8ab4f8; font-weight:600; margin-bottom:4px;">
@@ -464,12 +471,31 @@ function renderRepairList(requests) {
         <div>신청자: ${escapeHTML(r.applicant)}${r.contact ? ' / 연락처: ' + escapeHTML(r.contact) : ''}</div>
         <div>내용: ${escapeHTML(r.description)}</div>
         <div style="color:#5f6368; font-size:11px; margin-top:4px;">접수: ${escapeHTML(submitted)}</div>
-        <button class="res-cancel-btn" onclick="handleRepairComplete('${escapeHTML(r.id)}', this)">처리 완료</button>
+        ${actionHtml}
       </div>
     `;
-  }).join('');
+  };
 
-  listArea.innerHTML = rows;
+  let html = '';
+
+  if (pending.length === 0) {
+    html += '<p style="color:#9aa0a6; font-size:13px;">미처리 요청이 없습니다.</p>';
+  } else {
+    html += pending.map(r => buildCard(r, false)).join('');
+  }
+
+  if (completed.length > 0) {
+    html += `
+      <details class="welfare-details" style="margin-top: 14px;">
+        <summary>처리 완료 내역 보기 (${completed.length}건)</summary>
+        <div style="margin-top: 10px;">
+          ${completed.map(r => buildCard(r, true)).join('')}
+        </div>
+      </details>
+    `;
+  }
+
+  listArea.innerHTML = html;
 }
 
 async function handleRepairSubmit(e) {
