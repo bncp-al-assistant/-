@@ -384,6 +384,34 @@ function openGuideModal() {
 function openHaircutModal() {
   document.getElementById('haircutModal').style.display = 'flex';
   populateHaircutFridays();
+  populateHaircutTimeSlots();
+}
+
+// 10:00 ~ 18:00 범위를 40분 단위로 잘라서 시간대 select에 채움
+function populateHaircutTimeSlots() {
+  const select = document.getElementById('hcTime');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">선택해주세요</option>';
+
+  const startMinutes = 10 * 60;      // 10:00
+  const endMinutes = 18 * 60;        // 18:00
+  const slotLength = 40;             // 40분 단위
+
+  const formatTime = (totalMin) => {
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return `${pad2(h)}:${pad2(m)}`;
+  };
+
+  for (let start = startMinutes; start + slotLength <= endMinutes; start += slotLength) {
+    const end = start + slotLength;
+    const value = `${formatTime(start)}~${formatTime(end)}`;
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = `${formatTime(start)} ~ ${formatTime(end)}`;
+    select.appendChild(opt);
+  }
 }
 
 // 이번 달의 (오늘 이후) 금요일들을 구해서 select에 채움.
@@ -706,7 +734,6 @@ function handleHaircutSubmit(e) {
   const date = document.getElementById('hcDate').value;
   const service = document.getElementById('hcService').value;
   const time = document.getElementById('hcTime').value;
-  const memo = document.getElementById('hcMemo').value.trim();
 
   if (!name) { alert('이름을 입력해주세요.'); return; }
   if (!date) { alert('희망 날짜를 선택해주세요.'); return; }
@@ -716,7 +743,6 @@ function handleHaircutSubmit(e) {
   alert(
     `[이발서비스 예약 접수]\n` +
     `이름: ${name}\n날짜: ${date}\n서비스: ${service}\n시간대: ${time}` +
-    (memo ? `\n요청사항: ${memo}` : '') +
     `\n\n선착순 운영으로, 현장 상황에 따라 대기시간이 발생할 수 있습니다.`
   );
 
