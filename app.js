@@ -76,7 +76,9 @@ async function loadMenuData() {
 }
 
 function setupMenuData(data) {
-  weeklyData = data.weeklyData || [];
+  const allData = data.weeklyData || [];
+  // 데이터가 10일을 초과하면, 마지막 날짜(가장 최근)부터 거꾸로 10일치만 표시
+  weeklyData = allData.length > 10 ? allData.slice(-10) : allData;
   weekRange = data.weekRange || "";
   const title = document.getElementById("menuModalTitle");
   title.innerHTML = data.weekRange ? `주간 식단표 (${data.weekRange})` : "주간 식단표";
