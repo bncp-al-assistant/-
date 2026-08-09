@@ -521,6 +521,85 @@
       color: #8ab4f8;
     }
 
+    /* Generic reservation-status list item (haircut / repair / clubhouse) */
+    .res-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .res-item {
+      background-color: #171717;
+      border: 1px solid #3c4043;
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .res-item .res-info {
+      font-size: 13px;
+      color: #e8eaed;
+      line-height: 1.6;
+    }
+
+    .res-item .res-info strong {
+      color: #8ab4f8;
+    }
+
+    .res-item .res-sub {
+      color: #9aa0a6;
+      font-size: 12px;
+    }
+
+    .res-cancel-btn {
+      flex-shrink: 0;
+      background-color: #3c2a1e;
+      border: 1px solid #ff6b00;
+      color: #ff6b00;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .res-cancel-btn:hover {
+      background-color: #ff6b00;
+      color: #fff;
+    }
+
+    .res-empty {
+      color: #9aa0a6;
+      font-size: 13px;
+      padding: 10px 2px;
+    }
+
+    .auto-assign-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: #1c2b20;
+      border: 1px solid #2e7d4f;
+      color: #6fd095;
+      font-size: 12.5px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      font-size: 13px;
+      color: #8ab4f8;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: block;
+    }
+
     /* ===== 클럽하우스 예약 - 달력 위젯 ===== */
     .ch-calendar {
       background-color: #202124;
@@ -802,7 +881,7 @@
 
   <main>
     <div class="logo">BNCP <span>AI</span> Assistant</div>
-    
+
     <div class="search-box">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="#9aa0a6">
         <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
@@ -854,7 +933,7 @@
         <button class="tab-btn" onclick="showGuideTab('tab5', this)">휴가/부임절차</button>
       </div>
       <div class="modal-body">
-        
+
         <!-- Tab 1: 식당 이용 -->
         <div id="tab1" class="info-section">
           <div class="info-card">
@@ -946,7 +1025,7 @@
 
   <!-- 3. 이발서비스 예약 모달 -->
   <div class="modal-overlay" id="haircutModal" onclick="handleModalOverlayClick(event, 'haircutModal')">
-    <div class="modal-content" style="max-width: 480px;">
+    <div class="modal-content" style="max-width: 520px;">
       <div class="modal-header">
         <h2>💈 이발서비스 예약</h2>
         <button class="close-btn" onclick="closeModal('haircutModal')">&times;</button>
@@ -979,15 +1058,19 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="hcTime">희망 시간대 <span style="color:#9aa0a6; font-weight:400;">(40분 단위)</span></label>
-            <select id="hcTime" class="form-control" required>
-              <option value="">선택해주세요</option>
-            </select>
+          <div class="auto-assign-note">
+            ⏱️ 희망 날짜의 <strong>예약 가능한 가장 빠른 시간</strong>이 자동으로 배정됩니다 (40분 단위, 10:00~18:00).
           </div>
 
-          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">예약 신청하기</button>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px; padding: 12px;">예약 신청하기</button>
         </form>
+
+        <div style="margin-top: 26px;">
+          <label class="section-heading">📋 이발서비스 예약 현황</label>
+          <div id="hcListArea" class="res-list">
+            <p class="res-empty">불러오는 중...</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1043,11 +1126,9 @@
         </form>
 
         <div style="margin-top: 24px;">
-          <label style="display:block; font-size:14px; color:#8ab4f8; margin-bottom:10px; font-weight:600;">
-            📋 수리요청 현황
-          </label>
-          <div id="repairListArea">
-            <p style="color:#9aa0a6; font-size:13px;">불러오는 중...</p>
+          <label class="section-heading">📋 수리요청 현황</label>
+          <div id="repairListArea" class="res-list">
+            <p class="res-empty">불러오는 중...</p>
           </div>
         </div>
       </div>
@@ -1102,7 +1183,7 @@
               <div style="margin-bottom: 16px;">
                 <label class="ch-section-label">📋 이 날짜의 예약 현황</label>
                 <div id="chDateListArea">
-                  <p style="color:#9aa0a6; font-size:12px;">불러오는 중...</p>
+                  <p class="res-empty">불러오는 중...</p>
                 </div>
               </div>
 
@@ -1205,6 +1286,482 @@
     </div>
   </footer>
 
-  <script src="app.js"></script>
+  <script>
+    /* =========================================================
+       공용 유틸
+       ========================================================= */
+    function pad(n) { return n < 10 ? '0' + n : String(n); }
+
+    function dateKey(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+
+    function formatDateKR(d) {
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} (${days[d.getDay()]})`;
+    }
+
+    function formatDateKRFromKey(key) {
+      const [y, m, dd] = key.split('-').map(Number);
+      return formatDateKR(new Date(y, m - 1, dd));
+    }
+
+    function todayStart() {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    function newId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    /* =========================================================
+       모달 공용
+       ========================================================= */
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function handleModalOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
+
+    function openMenuModal() { renderMenu(); openModal('menuModal'); }
+    function openGuideModal() { openModal('guideModal'); }
+    function openHaircutModal() { populateHaircutDates(); renderHaircutList(); openModal('haircutModal'); }
+    function openRepairModal() { renderRepairList(); openModal('repairModal'); }
+    function openClubhouseModal() { renderCalendar(); openModal('clubhouseModal'); }
+
+    function showGuideTab(id, btn) {
+      document.querySelectorAll('#guideModal .info-section').forEach(s => s.style.display = 'none');
+      document.getElementById(id).style.display = 'flex';
+      document.querySelectorAll('#guideModal .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    /* =========================================================
+       AI 검색창 (간단 키워드 응답)
+       ========================================================= */
+    function handleSearch() {
+      const input = document.getElementById('userInput');
+      const q = input.value.trim();
+      const area = document.getElementById('responseArea');
+      if (!q) return;
+
+      area.style.display = 'block';
+      let answer = '문의하신 내용을 확인 중입니다. 상단 메뉴에서 관련 항목(식단표 / 캠프 안내 / 이발예약 / 수리요청 / 클럽하우스 예약)을 함께 확인해보세요.';
+
+      if (q.includes('식단') || q.includes('메뉴') || q.includes('밥')) {
+        answer = '주간 식단표를 불러왔습니다. 요일별 조식/중식/석식 메뉴를 확인해보세요.';
+        openMenuModal();
+      } else if (q.includes('이발') || q.includes('머리') || q.includes('커트') || q.includes('염색')) {
+        answer = '이발서비스는 매주 금요일 10:00~18:00 운영되며, 예약하시면 가능한 가장 빠른 시간이 자동으로 배정됩니다.';
+        openHaircutModal();
+      } else if (q.includes('수리')) {
+        answer = '숙소 수리요청 창을 열었습니다. 동/호수와 수리 유형을 입력해 접수해주세요.';
+        openRepairModal();
+      } else if (q.includes('클럽하우스') || q.includes('라운지')) {
+        answer = '클럽하우스/라운지 예약 창을 열었습니다. 달력에서 원하는 날짜를 선택해 신청해주세요.';
+        openClubhouseModal();
+      } else if (q.includes('휴가') || q.includes('부임')) {
+        answer = '정기휴가는 3.5개월마다 14일 부여되며, 최소 4주 전 전자결재가 필요합니다. 자세한 내용은 "캠프/업무 안내 > 휴가/부임절차" 탭을 참고하세요.';
+      }
+
+      area.textContent = answer;
+      input.value = '';
+    }
+
+    /* =========================================================
+       1) 주간 식단표
+       ========================================================= */
+    const WEEK_MENU = {
+      '월요일': { 조식: ['백미밥/잡곡밥', '된장국', '계란말이', '시금치나물', '김치'], 중식: ['백미밥/잡곡밥', '미역국', '제육볶음', '오이무침', '김치'], 석식: ['백미밥/잡곡밥', '콩나물국', '고등어구이', '숙주나물', '김치'] },
+      '화요일': { 조식: ['백미밥/잡곡밥', '북엇국', '소시지야채볶음', '도라지무침', '김치'], 중식: ['백미밥/잡곡밥', '김치찌개', '돈까스', '양배추샐러드', '김치'], 석식: ['백미밥/잡곡밥', '갈비탕', '잡채', '시금치나물', '김치'] },
+      '수요일': { 조식: ['백미밥/잡곡밥', '계란국', '스팸구이', '콩나물무침', '김치'], 중식: ['백미밥/잡곡밥', '부대찌개', '닭갈비', '열무김치', '김치'], 석식: ['백미밥/잡곡밥', '육개장', '고등어조림', '나물무침', '김치'] },
+      '목요일': { 조식: ['백미밥/잡곡밥', '미소국', '오믈렛', '오이소박이', '김치'], 중식: ['백미밥/잡곡밥', '설렁탕', '불고기', '상추쌈', '김치'], 석식: ['백미밥/잡곡밥', '순두부찌개', '생선까스', '감자조림', '김치'] },
+      '금요일': { 조식: ['백미밥/잡곡밥', '콩나물국', '베이컨', '미역줄기볶음', '김치'], 중식: ['백미밥/잡곡밥', '냉면', '탕수육', '단무지', '김치'], 석식: ['백미밥/잡곡밥', '삼계탕', '잡곡전', '도라지무침', '김치'] },
+    };
+    const WEEK_DAYS = Object.keys(WEEK_MENU);
+
+    function renderMenu() {
+      const tabBar = document.getElementById('menuTabBar');
+      tabBar.innerHTML = '';
+      WEEK_DAYS.forEach((day, i) => {
+        const b = document.createElement('button');
+        b.className = 'tab-btn' + (i === 0 ? ' active' : '');
+        b.textContent = day;
+        b.onclick = () => selectMenuDay(day, b);
+        tabBar.appendChild(b);
+      });
+      selectMenuDay(WEEK_DAYS[0]);
+    }
+
+    function selectMenuDay(day, btn) {
+      document.getElementById('menuModalTitle').textContent = `주간 식단표 - ${day}`;
+      if (btn) {
+        document.querySelectorAll('#menuTabBar .tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const grid = document.getElementById('mealGrid');
+      grid.innerHTML = '';
+      const meals = WEEK_MENU[day];
+      Object.keys(meals).forEach(mealName => {
+        const card = document.createElement('div');
+        card.className = 'meal-card';
+        card.innerHTML = `<h3>${mealName}</h3><ul>${meals[mealName].map(item => `<li>${item}</li>`).join('')}</ul>`;
+        grid.appendChild(card);
+      });
+    }
+
+    /* =========================================================
+       2) 이발서비스 예약 — 현황 표시 / 취소 / 자동 시간 배정
+       ========================================================= */
+    const HC_SLOTS = ['10:00', '10:40', '11:20', '12:00', '12:40', '13:20', '14:00', '14:40', '15:20', '16:00', '16:40', '17:20'];
+    const HC_STORAGE_KEY = 'bncp-haircut-reservations';
+
+    function upcomingFridays(count) {
+      const result = [];
+      let d = todayStart();
+      while (result.length < count) {
+        if (d.getDay() === 5) result.push(new Date(d));
+        d.setDate(d.getDate() + 1);
+      }
+      return result;
+    }
+
+    function populateHaircutDates() {
+      const sel = document.getElementById('hcDate');
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">선택해주세요</option>';
+      upcomingFridays(8).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = dateKey(d);
+        opt.textContent = formatDateKR(d);
+        sel.appendChild(opt);
+      });
+      if (prev) sel.value = prev;
+    }
+
+    async function getHaircutReservations() {
+      try {
+        const res = await window.storage.get(HC_STORAGE_KEY, true);
+        return res ? JSON.parse(res.value) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function saveHaircutReservations(list) {
+      try {
+        await window.storage.set(HC_STORAGE_KEY, JSON.stringify(list), true);
+      } catch (e) {
+        console.error('예약 저장 실패', e);
+      }
+    }
+
+    async function renderHaircutList() {
+      const area = document.getElementById('hcListArea');
+      area.innerHTML = '<p class="res-empty">불러오는 중...</p>';
+      const list = await getHaircutReservations();
+
+      if (list.length === 0) {
+        area.innerHTML = '<p class="res-empty">아직 예약된 내역이 없습니다.</p>';
+        return;
+      }
+
+      list.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+      area.innerHTML = '';
+      list.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'res-item';
+        item.innerHTML = `
+          <div class="res-info">
+            <strong>${formatDateKRFromKey(r.date)}</strong> · ${r.time}<br>
+            <span class="res-sub">${r.name} · ${r.service}</span>
+          </div>
+          <button type="button" class="res-cancel-btn" onclick="cancelHaircutReservation('${r.id}')">예약 취소</button>
+        `;
+        area.appendChild(item);
+      });
+    }
+
+    async function cancelHaircutReservation(id) {
+      if (!confirm('이 예약을 취소하시겠습니까?')) return;
+      let list = await getHaircutReservations();
+      list = list.filter(r => r.id !== id);
+      await saveHaircutReservations(list);
+      renderHaircutList();
+    }
+
+    async function handleHaircutSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('hcName').value.trim();
+      const date = document.getElementById('hcDate').value;
+      const service = document.getElementById('hcService').value;
+
+      if (!name || !date || !service) {
+        alert('모든 항목을 입력해주세요.');
+        return;
+      }
+
+      const list = await getHaircutReservations();
+      const takenTimes = new Set(list.filter(r => r.date === date).map(r => r.time));
+      const assignedSlot = HC_SLOTS.find(t => !takenTimes.has(t));
+
+      if (!assignedSlot) {
+        alert('선택하신 날짜는 예약이 모두 마감되었습니다. 다른 날짜를 선택해주세요.');
+        return;
+      }
+
+      const newRes = { id: newId(), name, date, service, time: assignedSlot };
+      list.push(newRes);
+      await saveHaircutReservations(list);
+
+      document.getElementById('haircutForm').reset();
+      await renderHaircutList();
+      alert(`예약이 완료되었습니다!\n${formatDateKRFromKey(date)} ${assignedSlot}에 자동 배정되었습니다.`);
+    }
+
+    /* =========================================================
+       3) 숙소 수리요청 — 현황 표시 / 취소
+       ========================================================= */
+    const RP_STORAGE_KEY = 'bncp-repair-requests';
+
+    async function getRepairRequests() {
+      try {
+        const res = await window.storage.get(RP_STORAGE_KEY, true);
+        return res ? JSON.parse(res.value) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function saveRepairRequests(list) {
+      try {
+        await window.storage.set(RP_STORAGE_KEY, JSON.stringify(list), true);
+      } catch (e) {
+        console.error('수리요청 저장 실패', e);
+      }
+    }
+
+    async function renderRepairList() {
+      const area = document.getElementById('repairListArea');
+      area.innerHTML = '<p class="res-empty">불러오는 중...</p>';
+      const list = await getRepairRequests();
+
+      if (list.length === 0) {
+        area.innerHTML = '<p class="res-empty">접수된 수리요청이 없습니다.</p>';
+        return;
+      }
+
+      list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      area.innerHTML = '';
+      list.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'res-item';
+        item.innerHTML = `
+          <div class="res-info">
+            <strong>${r.room}</strong> · ${r.type}<br>
+            <span class="res-sub">${r.applicant} · ${r.description}</span>
+          </div>
+          <button type="button" class="res-cancel-btn" onclick="cancelRepairRequest('${r.id}')">요청 취소</button>
+        `;
+        area.appendChild(item);
+      });
+    }
+
+    async function cancelRepairRequest(id) {
+      if (!confirm('이 수리요청을 취소하시겠습니까?')) return;
+      let list = await getRepairRequests();
+      list = list.filter(r => r.id !== id);
+      await saveRepairRequests(list);
+      renderRepairList();
+    }
+
+    async function handleRepairSubmit(e) {
+      e.preventDefault();
+      const applicant = document.getElementById('rpApplicant').value.trim();
+      const room = document.getElementById('rpRoom').value.trim();
+      const type = document.getElementById('rpType').value;
+      const description = document.getElementById('rpDescription').value.trim();
+      const contact = document.getElementById('rpContact').value.trim();
+
+      if (!applicant || !room || !type || !description) {
+        alert('필수 항목을 모두 입력해주세요.');
+        return;
+      }
+
+      const list = await getRepairRequests();
+      list.push({ id: newId(), applicant, room, type, description, contact, createdAt: new Date().toISOString() });
+      await saveRepairRequests(list);
+
+      document.getElementById('repairForm').reset();
+      await renderRepairList();
+      alert('수리요청이 접수되었습니다.');
+    }
+
+    /* =========================================================
+       4) 클럽하우스 / 라운지 예약 달력
+       ========================================================= */
+    const CH_STORAGE_KEY = 'bncp-clubhouse-reservations';
+    let chViewYear, chViewMonth, chSelectedDateKey = null;
+
+    async function getClubhouseReservations() {
+      try {
+        const res = await window.storage.get(CH_STORAGE_KEY, true);
+        return res ? JSON.parse(res.value) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function saveClubhouseReservations(list) {
+      try {
+        await window.storage.set(CH_STORAGE_KEY, JSON.stringify(list), true);
+      } catch (e) {
+        console.error('클럽하우스 예약 저장 실패', e);
+      }
+    }
+
+    function changeCalendarMonth(delta) {
+      chViewMonth += delta;
+      if (chViewMonth < 0) { chViewMonth = 11; chViewYear--; }
+      if (chViewMonth > 11) { chViewMonth = 0; chViewYear++; }
+      renderCalendar(true);
+    }
+
+    async function renderCalendar(keepMonthState) {
+      if (!keepMonthState) {
+        const now = new Date();
+        chViewYear = now.getFullYear();
+        chViewMonth = now.getMonth();
+        chSelectedDateKey = null;
+        document.getElementById('chCalendarHint').style.display = 'block';
+        document.getElementById('chDateDetailArea').style.display = 'none';
+      }
+
+      document.getElementById('chCalendarLabel').textContent = `${chViewYear}년 ${chViewMonth + 1}월`;
+
+      const reservations = await getClubhouseReservations();
+      const bookedDates = new Set(reservations.map(r => r.date));
+
+      const grid = document.getElementById('chCalendarGrid');
+      grid.innerHTML = '';
+
+      const firstDay = new Date(chViewYear, chViewMonth, 1);
+      const startOffset = firstDay.getDay();
+      const daysInMonth = new Date(chViewYear, chViewMonth + 1, 0).getDate();
+      const today = todayStart();
+
+      for (let i = 0; i < startOffset; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'ch-day empty';
+        grid.appendChild(empty);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const cellDate = new Date(chViewYear, chViewMonth, day);
+        const key = dateKey(cellDate);
+        const cell = document.createElement('div');
+        cell.className = 'ch-day';
+        cell.textContent = day;
+
+        if (cellDate < today) cell.classList.add('past');
+        if (key === dateKey(today)) cell.classList.add('today');
+        if (key === chSelectedDateKey) cell.classList.add('selected');
+
+        if (bookedDates.has(key)) {
+          const dot = document.createElement('span');
+          dot.className = 'ch-dot';
+          cell.appendChild(dot);
+        }
+
+        if (cellDate >= today) {
+          cell.onclick = () => selectCalendarDate(key);
+        }
+
+        grid.appendChild(cell);
+      }
+    }
+
+    async function selectCalendarDate(key) {
+      chSelectedDateKey = key;
+      await renderCalendar(true);
+
+      document.getElementById('chCalendarHint').style.display = 'none';
+      document.getElementById('chDateDetailArea').style.display = 'block';
+      document.getElementById('chDetailDateLabel').textContent = formatDateKRFromKey(key);
+      document.getElementById('chDate').value = key;
+
+      await renderClubhouseDateList(key);
+    }
+
+    async function renderClubhouseDateList(key) {
+      const area = document.getElementById('chDateListArea');
+      area.innerHTML = '<p class="res-empty">불러오는 중...</p>';
+      const list = (await getClubhouseReservations()).filter(r => r.date === key);
+
+      if (list.length === 0) {
+        area.innerHTML = '<p class="res-empty">이 날짜에 예약된 내역이 없습니다.</p>';
+        return;
+      }
+
+      area.innerHTML = '';
+      list.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'res-item';
+        item.innerHTML = `
+          <div class="res-info">
+            <strong>${r.location}</strong><br>
+            <span class="res-sub">${r.team} · ${r.applicant} 외 ${r.headcount}명</span>
+          </div>
+          <button type="button" class="res-cancel-btn" onclick="cancelClubhouseReservation('${r.id}')">취소</button>
+        `;
+        area.appendChild(item);
+      });
+    }
+
+    async function cancelClubhouseReservation(id) {
+      if (!confirm('이 예약을 취소하시겠습니까?')) return;
+      let list = await getClubhouseReservations();
+      list = list.filter(r => r.id !== id);
+      await saveClubhouseReservations(list);
+      await renderCalendar(true);
+      if (chSelectedDateKey) await renderClubhouseDateList(chSelectedDateKey);
+    }
+
+    function toggleItemPill(checkbox) {
+      checkbox.closest('.checkbox-pill').classList.toggle('checked', checkbox.checked);
+    }
+
+    async function handleClubhouseSubmit(e) {
+      e.preventDefault();
+      const date = document.getElementById('chDate').value;
+      const team = document.getElementById('chTeam').value;
+      const applicant = document.getElementById('chApplicant').value.trim();
+      const headcount = document.getElementById('chHeadcount').value;
+      const location = document.getElementById('chLocation').value;
+      const additional = document.getElementById('chAdditional').value.trim();
+      const items = Array.from(document.querySelectorAll('#chItemsGroup input:checked')).map(i => i.value);
+
+      if (!date || !team || !applicant || !headcount || !location) {
+        alert('필수 항목을 모두 입력해주세요.');
+        return;
+      }
+
+      const list = await getClubhouseReservations();
+      const clash = list.some(r => r.date === date && r.location === location);
+      if (clash) {
+        alert('선택하신 날짜/장소는 이미 예약이 있습니다. 다른 장소나 날짜를 선택해주세요.');
+        return;
+      }
+
+      list.push({ id: newId(), date, team, applicant, headcount, location, items, additional });
+      await saveClubhouseReservations(list);
+
+      document.getElementById('clubhouseForm').reset();
+      document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(p => p.classList.add('checked'));
+      document.getElementById('chDate').value = date;
+
+      await renderCalendar(true);
+      await renderClubhouseDateList(date);
+      alert('클럽하우스/라운지 예약이 완료되었습니다.');
+    }
+  </script>
 </body>
 </html>
