@@ -1315,41 +1315,55 @@
     }
 
     /* =========================================================
-       저장소 래퍼
-       - Claude 아티팩트 환경에서는 window.storage(영구 저장)를 사용
-       - 파일로 다운로드해 단독으로 열었을 때는 window.storage가 없으므로
-         메모리 저장소로 자동 전환되어, 최소한 같은 화면(탭)에서는
-         정상적으로 예약/취소가 동작하도록 함
+       백엔드 연결 (Cloudflare Worker + KV)
+       ⚠️ 아래 API_BASE를 실제 배포된 Worker 주소로 반드시 교체하세요.
+          예) https://odd-butterfly-b936.<계정-서브도메인>.workers.dev
+       주소가 올바르지 않으면 예약/수리요청이 저장되지 않고
+       "서버에 연결할 수 없습니다" 오류가 표시됩니다.
        ========================================================= */
-    const memoryStore = {};
-    const hasRealStorage = () => (typeof window.storage === 'object' && window.storage !== null
-      && typeof window.storage.get === 'function' && typeof window.storage.set === 'function');
+    const API_BASE = 'https://odd-butterfly-b936.YOUR-SUBDOMAIN.workers.dev';
 
-    async function storeGetList(key, shared) {
-      if (hasRealStorage()) {
-        try {
-          const res = await window.storage.get(key, shared);
-          if (res && typeof res.value === 'string') {
-            memoryStore[key] = res.value; // 메모리에도 미러링
-            return JSON.parse(res.value);
-          }
-        } catch (e) {
-          // 키가 없거나(최초 실행) storage 접근 실패 -> 메모리 저장소로 폴백
-        }
+    async function apiPost(payload) {
+      let res;
+      try {
+        res = await fetch(API_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {
+        throw new Error('서버에 연결할 수 없습니다. API_BASE 주소 설정을 확인해주세요.');
       }
-      return memoryStore[key] ? JSON.parse(memoryStore[key]) : [];
+      let data = {};
+      try { data = await res.json(); } catch (e) { /* ignore parse error */ }
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `요청이 실패했습니다 (status ${res.status})`);
+      }
+      return data;
     }
 
-    async function storeSetList(key, list, shared) {
-      const json = JSON.stringify(list);
-      memoryStore[key] = json;
-      if (hasRealStorage()) {
-        try {
-          await window.storage.set(key, json, shared);
-        } catch (e) {
-          console.warn('영구 저장소 접근 실패, 이 화면 세션에서만 유지됩니다:', e);
-        }
+    async function apiGet(params) {
+      let url;
+      try {
+        url = new URL(API_BASE);
+      } catch (e) {
+        throw new Error('API_BASE 주소가 올바르지 않습니다.');
       }
+      Object.entries(params || {}).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+      });
+      let res;
+      try {
+        res = await fetch(url.toString());
+      } catch (e) {
+        throw new Error('서버에 연결할 수 없습니다. API_BASE 주소 설정을 확인해주세요.');
+      }
+      let data = {};
+      try { data = await res.json(); } catch (e) { /* ignore parse error */ }
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || `요청이 실패했습니다 (status ${res.status})`);
+      }
+      return data;
     }
 
     /* =========================================================
@@ -1375,33 +1389,29 @@
     /* =========================================================
        AI 검색창 (간단 키워드 응답)
        ========================================================= */
-    function handleSearch() {
+    async function handleSearch() {
       const input = document.getElementById('userInput');
       const q = input.value.trim();
       const area = document.getElementById('responseArea');
       if (!q) return;
 
       area.style.display = 'block';
-      let answer = '문의하신 내용을 확인 중입니다. 상단 메뉴에서 관련 항목(식단표 / 캠프 안내 / 이발예약 / 수리요청 / 클럽하우스 예약)을 함께 확인해보세요.';
-
-      if (q.includes('식단') || q.includes('메뉴') || q.includes('밥')) {
-        answer = '주간 식단표를 불러왔습니다. 요일별 조식/중식/석식 메뉴를 확인해보세요.';
-        openMenuModal();
-      } else if (q.includes('이발') || q.includes('머리') || q.includes('커트') || q.includes('염색')) {
-        answer = '이발서비스는 매주 금요일 10:00~18:00 운영되며, 예약하시면 가능한 가장 빠른 시간이 자동으로 배정됩니다.';
-        openHaircutModal();
-      } else if (q.includes('수리')) {
-        answer = '숙소 수리요청 창을 열었습니다. 동/호수와 수리 유형을 입력해 접수해주세요.';
-        openRepairModal();
-      } else if (q.includes('클럽하우스') || q.includes('라운지')) {
-        answer = '클럽하우스/라운지 예약 창을 열었습니다. 달력에서 원하는 날짜를 선택해 신청해주세요.';
-        openClubhouseModal();
-      } else if (q.includes('휴가') || q.includes('부임')) {
-        answer = '정기휴가는 3.5개월마다 14일 부여되며, 최소 4주 전 전자결재가 필요합니다. 자세한 내용은 "캠프/업무 안내 > 휴가/부임절차" 탭을 참고하세요.';
-      }
-
-      area.textContent = answer;
+      area.textContent = '답변을 생성하는 중입니다...';
       input.value = '';
+
+      // 관련 메뉴도 함께 열어주기 (백엔드 응답과 별개로 바로 UX 도움)
+      if (q.includes('식단') || q.includes('메뉴') || q.includes('밥')) openMenuModal();
+      else if (q.includes('이발') || q.includes('머리') || q.includes('커트') || q.includes('염색')) openHaircutModal();
+      else if (q.includes('수리')) openRepairModal();
+      else if (q.includes('클럽하우스') || q.includes('라운지')) openClubhouseModal();
+
+      try {
+        const data = await apiPost({ message: q, weeklyMenu: WEEK_MENU });
+        area.textContent = data.reply || data.answer || data.message || '답변을 생성하지 못했습니다.';
+      } catch (e) {
+        // 백엔드(AI 챗봇)에 연결되지 않은 경우를 대비한 안내용 폴백
+        area.textContent = `AI 서버에 연결하지 못해 기본 안내로 답변합니다.\n\n상단 메뉴에서 관련 항목(식단표 / 캠프 안내 / 이발예약 / 수리요청 / 클럽하우스 예약)을 확인해보세요.\n(오류: ${e.message})`;
+      }
     }
 
     /* =========================================================
@@ -1476,17 +1486,21 @@
     }
 
     async function getHaircutReservations() {
-      return storeGetList(HC_STORAGE_KEY, true);
-    }
-
-    async function saveHaircutReservations(list) {
-      await storeSetList(HC_STORAGE_KEY, list, true);
+      const data = await apiGet({ type: 'haircut_list' });
+      return data.reservations || [];
     }
 
     async function renderHaircutList() {
       const area = document.getElementById('hcListArea');
       area.innerHTML = '<p class="res-empty">불러오는 중...</p>';
-      const list = await getHaircutReservations();
+
+      let list;
+      try {
+        list = await getHaircutReservations();
+      } catch (e) {
+        area.innerHTML = `<p class="res-empty">⚠️ 예약 현황을 불러오지 못했습니다. (${e.message})</p>`;
+        return;
+      }
 
       if (list.length === 0) {
         area.innerHTML = '<p class="res-empty">아직 예약된 내역이 없습니다.</p>';
@@ -1511,10 +1525,12 @@
 
     async function cancelHaircutReservation(id) {
       if (!confirm('이 예약을 취소하시겠습니까?')) return;
-      let list = await getHaircutReservations();
-      list = list.filter(r => r.id !== id);
-      await saveHaircutReservations(list);
-      renderHaircutList();
+      try {
+        await apiPost({ type: 'haircut_reservation_cancel', id });
+        await renderHaircutList();
+      } catch (e) {
+        alert(`취소에 실패했습니다: ${e.message}`);
+      }
     }
 
     async function handleHaircutSubmit(e) {
@@ -1528,22 +1544,14 @@
         return;
       }
 
-      const list = await getHaircutReservations();
-      const takenTimes = new Set(list.filter(r => r.date === date).map(r => r.time));
-      const assignedSlot = HC_SLOTS.find(t => !takenTimes.has(t));
-
-      if (!assignedSlot) {
-        alert('선택하신 날짜는 예약이 모두 마감되었습니다. 다른 날짜를 선택해주세요.');
-        return;
+      try {
+        const data = await apiPost({ type: 'haircut_reservation', data: { name, date, service } });
+        document.getElementById('haircutForm').reset();
+        await renderHaircutList();
+        alert(`예약이 완료되었습니다!\n${formatDateKRFromKey(date)} ${data.record.time}에 자동 배정되었습니다.`);
+      } catch (e) {
+        alert(`예약에 실패했습니다: ${e.message}`);
       }
-
-      const newRes = { id: newId(), name, date, service, time: assignedSlot };
-      list.push(newRes);
-      await saveHaircutReservations(list);
-
-      document.getElementById('haircutForm').reset();
-      await renderHaircutList();
-      alert(`예약이 완료되었습니다!\n${formatDateKRFromKey(date)} ${assignedSlot}에 자동 배정되었습니다.`);
     }
 
     /* =========================================================
@@ -1552,31 +1560,35 @@
     const RP_STORAGE_KEY = 'bncp-repair-requests';
 
     async function getRepairRequests() {
-      return storeGetList(RP_STORAGE_KEY, true);
-    }
-
-    async function saveRepairRequests(list) {
-      await storeSetList(RP_STORAGE_KEY, list, true);
+      const data = await apiGet({ type: 'repair_list' });
+      return data.requests || [];
     }
 
     async function renderRepairList() {
       const area = document.getElementById('repairListArea');
       area.innerHTML = '<p class="res-empty">불러오는 중...</p>';
-      const list = await getRepairRequests();
+
+      let list;
+      try {
+        list = await getRepairRequests();
+      } catch (e) {
+        area.innerHTML = `<p class="res-empty">⚠️ 수리요청 현황을 불러오지 못했습니다. (${e.message})</p>`;
+        return;
+      }
 
       if (list.length === 0) {
         area.innerHTML = '<p class="res-empty">접수된 수리요청이 없습니다.</p>';
         return;
       }
 
-      list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      list.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
       area.innerHTML = '';
       list.forEach(r => {
         const item = document.createElement('div');
         item.className = 'res-item';
         item.innerHTML = `
           <div class="res-info">
-            <strong>${r.room}</strong> · ${r.type}<br>
+            <strong>${r.roomLocation}</strong> · ${r.repairType} <span class="res-sub">[${r.status || '접수'}]</span><br>
             <span class="res-sub">${r.applicant} · ${r.description}</span>
           </div>
           <button type="button" class="res-cancel-btn" onclick="cancelRepairRequest('${r.id}')">요청 취소</button>
@@ -1587,10 +1599,12 @@
 
     async function cancelRepairRequest(id) {
       if (!confirm('이 수리요청을 취소하시겠습니까?')) return;
-      let list = await getRepairRequests();
-      list = list.filter(r => r.id !== id);
-      await saveRepairRequests(list);
-      renderRepairList();
+      try {
+        await apiPost({ type: 'repair_request_cancel', id });
+        await renderRepairList();
+      } catch (e) {
+        alert(`취소에 실패했습니다: ${e.message}`);
+      }
     }
 
     async function handleRepairSubmit(e) {
@@ -1606,13 +1620,14 @@
         return;
       }
 
-      const list = await getRepairRequests();
-      list.push({ id: newId(), applicant, room, type, description, contact, createdAt: new Date().toISOString() });
-      await saveRepairRequests(list);
-
-      document.getElementById('repairForm').reset();
-      await renderRepairList();
-      alert('수리요청이 접수되었습니다.');
+      try {
+        await apiPost({ type: 'repair_request', data: { applicant, roomLocation: room, repairType: type, description, contact } });
+        document.getElementById('repairForm').reset();
+        await renderRepairList();
+        alert('수리요청이 접수되었습니다.');
+      } catch (e) {
+        alert(`접수에 실패했습니다: ${e.message}`);
+      }
     }
 
     /* =========================================================
@@ -1621,12 +1636,9 @@
     const CH_STORAGE_KEY = 'bncp-clubhouse-reservations';
     let chViewYear, chViewMonth, chSelectedDateKey = null;
 
-    async function getClubhouseReservations() {
-      return storeGetList(CH_STORAGE_KEY, true);
-    }
-
-    async function saveClubhouseReservations(list) {
-      await storeSetList(CH_STORAGE_KEY, list, true);
+    async function getClubhouseReservations(dateFilter) {
+      const data = await apiGet({ type: 'clubhouse_list', date: dateFilter });
+      return data.reservations || [];
     }
 
     function changeCalendarMonth(delta) {
@@ -1648,8 +1660,13 @@
 
       document.getElementById('chCalendarLabel').textContent = `${chViewYear}년 ${chViewMonth + 1}월`;
 
-      const reservations = await getClubhouseReservations();
-      const bookedDates = new Set(reservations.map(r => r.date));
+      let reservations = [];
+      try {
+        reservations = await getClubhouseReservations();
+      } catch (e) {
+        console.warn('클럽하우스 예약 현황을 불러오지 못했습니다:', e.message);
+      }
+      const bookedDates = new Set(reservations.map(r => r.usageDate));
 
       const grid = document.getElementById('chCalendarGrid');
       grid.innerHTML = '';
@@ -1705,7 +1722,14 @@
     async function renderClubhouseDateList(key) {
       const area = document.getElementById('chDateListArea');
       area.innerHTML = '<p class="res-empty">불러오는 중...</p>';
-      const list = (await getClubhouseReservations()).filter(r => r.date === key);
+
+      let list;
+      try {
+        list = await getClubhouseReservations(key);
+      } catch (e) {
+        area.innerHTML = `<p class="res-empty">⚠️ 예약 현황을 불러오지 못했습니다. (${e.message})</p>`;
+        return;
+      }
 
       if (list.length === 0) {
         area.innerHTML = '<p class="res-empty">이 날짜에 예약된 내역이 없습니다.</p>';
@@ -1729,11 +1753,13 @@
 
     async function cancelClubhouseReservation(id) {
       if (!confirm('이 예약을 취소하시겠습니까?')) return;
-      let list = await getClubhouseReservations();
-      list = list.filter(r => r.id !== id);
-      await saveClubhouseReservations(list);
-      await renderCalendar(true);
-      if (chSelectedDateKey) await renderClubhouseDateList(chSelectedDateKey);
+      try {
+        await apiPost({ type: 'clubhouse_reservation_cancel', id });
+        await renderCalendar(true);
+        if (chSelectedDateKey) await renderClubhouseDateList(chSelectedDateKey);
+      } catch (e) {
+        alert(`취소에 실패했습니다: ${e.message}`);
+      }
     }
 
     function toggleItemPill(checkbox) {
@@ -1755,23 +1781,26 @@
         return;
       }
 
-      const list = await getClubhouseReservations();
-      const clash = list.some(r => r.date === date && r.location === location);
-      if (clash) {
-        alert('선택하신 날짜/장소는 이미 예약이 있습니다. 다른 장소나 날짜를 선택해주세요.');
-        return;
+      try {
+        await apiPost({
+          type: 'clubhouse_reservation',
+          data: {
+            team, applicant, usageDate: date,
+            headcount: Number(headcount), location,
+            providedItems: items, additionalRequest: additional
+          }
+        });
+
+        document.getElementById('clubhouseForm').reset();
+        document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(p => p.classList.add('checked'));
+        document.getElementById('chDate').value = date;
+
+        await renderCalendar(true);
+        await renderClubhouseDateList(date);
+        alert('클럽하우스/라운지 예약이 완료되었습니다.');
+      } catch (e) {
+        alert(`예약에 실패했습니다: ${e.message}`);
       }
-
-      list.push({ id: newId(), date, team, applicant, headcount, location, items, additional });
-      await saveClubhouseReservations(list);
-
-      document.getElementById('clubhouseForm').reset();
-      document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(p => p.classList.add('checked'));
-      document.getElementById('chDate').value = date;
-
-      await renderCalendar(true);
-      await renderClubhouseDateList(date);
-      alert('클럽하우스/라운지 예약이 완료되었습니다.');
     }
   </script>
 </body>
