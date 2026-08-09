@@ -1347,6 +1347,13 @@
       return formatDateKR(new Date(y, m - 1, dd));
     }
 
+    function formatDateTimeKR(isoString) {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return '';
+      return `${formatDateKR(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
     function todayStart() {
       const d = new Date();
       d.setHours(0, 0, 0, 0);
@@ -1599,7 +1606,8 @@
         item.innerHTML = `
           <div class="res-info">
             <strong>${formatDateKRFromKey(r.date)}</strong> · ${r.time}<br>
-            <span class="res-sub">${r.name} · ${r.service}</span>
+            <span class="res-sub">${r.name} · ${r.service}</span><br>
+            <span class="res-sub">신청일시: ${formatDateTimeKR(r.submittedAt)}</span>
           </div>
           <button type="button" class="res-cancel-btn" onclick="cancelHaircutReservation('${r.id}')">예약 취소</button>
         `;
@@ -1679,7 +1687,8 @@
           item.innerHTML = `
             <div class="res-info">
               <strong>${r.roomLocation}</strong> · ${r.repairType}<br>
-              <span class="res-sub">${r.applicant} · ${r.description}</span>
+              <span class="res-sub">${r.applicant} · ${r.description}</span><br>
+              <span class="res-sub">신청일시: ${formatDateTimeKR(r.submittedAt)}</span>
             </div>
             <div class="res-actions">
               <button type="button" class="res-complete-btn" onclick="completeRepairRequest('${r.id}')">완료 처리</button>
@@ -1701,7 +1710,8 @@
           item.innerHTML = `
             <div class="res-info">
               <strong>${r.roomLocation}</strong> · ${r.repairType} <span class="res-status-badge">완료</span><br>
-              <span class="res-sub">${r.applicant} · ${r.description}</span>
+              <span class="res-sub">${r.applicant} · ${r.description}</span><br>
+              <span class="res-sub">신청일시: ${formatDateTimeKR(r.submittedAt)}${r.completedAt ? ` · 완료일시: ${formatDateTimeKR(r.completedAt)}` : ''}</span>
             </div>
           `;
           completedArea.appendChild(item);
@@ -1865,7 +1875,8 @@
         item.innerHTML = `
           <div class="res-info">
             <strong>${r.location}</strong><br>
-            <span class="res-sub">${r.team} · ${r.applicant} 외 ${r.headcount}명</span>
+            <span class="res-sub">${r.team} · ${r.applicant} 외 ${r.headcount}명</span><br>
+            <span class="res-sub">신청일시: ${formatDateTimeKR(r.submittedAt)}</span>
           </div>
           <button type="button" class="res-cancel-btn" onclick="cancelClubhouseReservation('${r.id}')">취소</button>
         `;
