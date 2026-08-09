@@ -573,6 +573,42 @@
       color: #fff;
     }
 
+    .res-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .res-complete-btn {
+      flex-shrink: 0;
+      background-color: #1c2b20;
+      border: 1px solid #2e7d4f;
+      color: #6fd095;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .res-complete-btn:hover {
+      background-color: #2e7d4f;
+      color: #fff;
+    }
+
+    .res-status-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background-color: #1c2b20;
+      color: #6fd095;
+      margin-left: 6px;
+    }
+
     .res-empty {
       color: #9aa0a6;
       font-size: 13px;
@@ -1126,11 +1162,18 @@
         </form>
 
         <div style="margin-top: 24px;">
-          <label class="section-heading">📋 수리요청 현황</label>
-          <div id="repairListArea" class="res-list">
+          <label class="section-heading">📋 수리 접수 현황</label>
+          <div id="repairPendingArea" class="res-list">
             <p class="res-empty">불러오는 중...</p>
           </div>
         </div>
+
+        <details class="welfare-details" id="repairCompletedDetails" style="margin-top: 16px; padding: 12px 14px;">
+          <summary>✅ 수리 완료 현황 (<span id="repairCompletedCount">0</span>건)</summary>
+          <div id="repairCompletedArea" class="res-list" style="margin-top: 10px;">
+            <p class="res-empty">불러오는 중...</p>
+          </div>
+        </details>
       </div>
     </div>
   </div>
@@ -1596,46 +1639,74 @@
     }
 
     /* =========================================================
-       3) 숙소 수리요청 — 현황 표시 / 취소
+       3) 숙소 수리요청 — 접수 현황(바로 표시) / 완료 현황(클릭 시 펼침) / 취소 / 완료 처리
        ========================================================= */
-    const RP_STORAGE_KEY = 'bncp-repair-requests';
-
     async function getRepairRequests() {
       const data = await apiGet({ type: 'repair_list' });
       return data.requests || [];
     }
 
     async function renderRepairList() {
-      const area = document.getElementById('repairListArea');
-      area.innerHTML = '<p class="res-empty">불러오는 중...</p>';
+      const pendingArea = document.getElementById('repairPendingArea');
+      const completedArea = document.getElementById('repairCompletedArea');
+      const completedCount = document.getElementById('repairCompletedCount');
+      pendingArea.innerHTML = '<p class="res-empty">불러오는 중...</p>';
+      completedArea.innerHTML = '<p class="res-empty">불러오는 중...</p>';
 
       let list;
       try {
         list = await getRepairRequests();
       } catch (e) {
-        area.innerHTML = `<p class="res-empty">⚠️ 수리요청 현황을 불러오지 못했습니다. (${e.message})</p>`;
+        const msg = `<p class="res-empty">⚠️ 수리요청 현황을 불러오지 못했습니다. (${e.message})</p>`;
+        pendingArea.innerHTML = msg;
+        completedArea.innerHTML = msg;
         return;
       }
 
-      if (list.length === 0) {
-        area.innerHTML = '<p class="res-empty">접수된 수리요청이 없습니다.</p>';
-        return;
+      const pending = list.filter(r => r.status !== '완료').sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+      const completed = list.filter(r => r.status === '완료').sort((a, b) => (b.completedAt || b.submittedAt).localeCompare(a.completedAt || a.submittedAt));
+
+      completedCount.textContent = completed.length;
+
+      // ---- 접수 현황 (바로 표시) ----
+      if (pending.length === 0) {
+        pendingArea.innerHTML = '<p class="res-empty">접수 중인 수리요청이 없습니다.</p>';
+      } else {
+        pendingArea.innerHTML = '';
+        pending.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'res-item';
+          item.innerHTML = `
+            <div class="res-info">
+              <strong>${r.roomLocation}</strong> · ${r.repairType}<br>
+              <span class="res-sub">${r.applicant} · ${r.description}</span>
+            </div>
+            <div class="res-actions">
+              <button type="button" class="res-complete-btn" onclick="completeRepairRequest('${r.id}')">완료 처리</button>
+              <button type="button" class="res-cancel-btn" onclick="cancelRepairRequest('${r.id}')">요청 취소</button>
+            </div>
+          `;
+          pendingArea.appendChild(item);
+        });
       }
 
-      list.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
-      area.innerHTML = '';
-      list.forEach(r => {
-        const item = document.createElement('div');
-        item.className = 'res-item';
-        item.innerHTML = `
-          <div class="res-info">
-            <strong>${r.roomLocation}</strong> · ${r.repairType} <span class="res-sub">[${r.status || '접수'}]</span><br>
-            <span class="res-sub">${r.applicant} · ${r.description}</span>
-          </div>
-          <button type="button" class="res-cancel-btn" onclick="cancelRepairRequest('${r.id}')">요청 취소</button>
-        `;
-        area.appendChild(item);
-      });
+      // ---- 완료 현황 (클릭해서 펼쳐야 보임) ----
+      if (completed.length === 0) {
+        completedArea.innerHTML = '<p class="res-empty">완료된 수리요청이 없습니다.</p>';
+      } else {
+        completedArea.innerHTML = '';
+        completed.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'res-item';
+          item.innerHTML = `
+            <div class="res-info">
+              <strong>${r.roomLocation}</strong> · ${r.repairType} <span class="res-status-badge">완료</span><br>
+              <span class="res-sub">${r.applicant} · ${r.description}</span>
+            </div>
+          `;
+          completedArea.appendChild(item);
+        });
+      }
     }
 
     async function cancelRepairRequest(id) {
@@ -1645,6 +1716,16 @@
         await renderRepairList();
       } catch (e) {
         alert(`취소에 실패했습니다: ${e.message}`);
+      }
+    }
+
+    async function completeRepairRequest(id) {
+      if (!confirm('이 수리요청을 완료 처리하시겠습니까?')) return;
+      try {
+        await apiPost({ type: 'repair_complete', id });
+        await renderRepairList();
+      } catch (e) {
+        alert(`완료 처리에 실패했습니다: ${e.message}`);
       }
     }
 
