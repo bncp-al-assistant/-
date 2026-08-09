@@ -1449,11 +1449,9 @@
       area.textContent = '답변을 생성하는 중입니다...';
       input.value = '';
 
-      // 관련 메뉴도 함께 열어주기 (백엔드 응답과 별개로 바로 UX 도움)
+      // 식단 관련 질문만 참고용으로 식단표를 함께 열어줌.
+      // 이발/수리/클럽하우스는 화면을 열지 않고 텍스트 답변만 제공.
       if (q.includes('식단') || q.includes('메뉴') || q.includes('밥')) openMenuModal();
-      else if (q.includes('이발') || q.includes('머리') || q.includes('커트') || q.includes('염색')) openHaircutModal();
-      else if (q.includes('수리')) openRepairModal();
-      else if (q.includes('클럽하우스') || q.includes('라운지')) openClubhouseModal();
 
       try {
         const data = await apiPost({ message: q, weeklyMenu: WEEK_MENU });
