@@ -1188,7 +1188,7 @@
               </div>
 
               <form id="clubhouseForm" onsubmit="handleClubhouseSubmit(event)" class="ch-compact-form">
-                <input type="hidden" id="chDate" required>
+                <input type="hidden" id="chDate">
 
                 <div class="form-group">
                   <label for="chTeam">팀명</label>
@@ -1315,6 +1315,44 @@
     }
 
     /* =========================================================
+       저장소 래퍼
+       - Claude 아티팩트 환경에서는 window.storage(영구 저장)를 사용
+       - 파일로 다운로드해 단독으로 열었을 때는 window.storage가 없으므로
+         메모리 저장소로 자동 전환되어, 최소한 같은 화면(탭)에서는
+         정상적으로 예약/취소가 동작하도록 함
+       ========================================================= */
+    const memoryStore = {};
+    const hasRealStorage = () => (typeof window.storage === 'object' && window.storage !== null
+      && typeof window.storage.get === 'function' && typeof window.storage.set === 'function');
+
+    async function storeGetList(key, shared) {
+      if (hasRealStorage()) {
+        try {
+          const res = await window.storage.get(key, shared);
+          if (res && typeof res.value === 'string') {
+            memoryStore[key] = res.value; // 메모리에도 미러링
+            return JSON.parse(res.value);
+          }
+        } catch (e) {
+          // 키가 없거나(최초 실행) storage 접근 실패 -> 메모리 저장소로 폴백
+        }
+      }
+      return memoryStore[key] ? JSON.parse(memoryStore[key]) : [];
+    }
+
+    async function storeSetList(key, list, shared) {
+      const json = JSON.stringify(list);
+      memoryStore[key] = json;
+      if (hasRealStorage()) {
+        try {
+          await window.storage.set(key, json, shared);
+        } catch (e) {
+          console.warn('영구 저장소 접근 실패, 이 화면 세션에서만 유지됩니다:', e);
+        }
+      }
+    }
+
+    /* =========================================================
        모달 공용
        ========================================================= */
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -1438,20 +1476,11 @@
     }
 
     async function getHaircutReservations() {
-      try {
-        const res = await window.storage.get(HC_STORAGE_KEY, true);
-        return res ? JSON.parse(res.value) : [];
-      } catch (e) {
-        return [];
-      }
+      return storeGetList(HC_STORAGE_KEY, true);
     }
 
     async function saveHaircutReservations(list) {
-      try {
-        await window.storage.set(HC_STORAGE_KEY, JSON.stringify(list), true);
-      } catch (e) {
-        console.error('예약 저장 실패', e);
-      }
+      await storeSetList(HC_STORAGE_KEY, list, true);
     }
 
     async function renderHaircutList() {
@@ -1523,20 +1552,11 @@
     const RP_STORAGE_KEY = 'bncp-repair-requests';
 
     async function getRepairRequests() {
-      try {
-        const res = await window.storage.get(RP_STORAGE_KEY, true);
-        return res ? JSON.parse(res.value) : [];
-      } catch (e) {
-        return [];
-      }
+      return storeGetList(RP_STORAGE_KEY, true);
     }
 
     async function saveRepairRequests(list) {
-      try {
-        await window.storage.set(RP_STORAGE_KEY, JSON.stringify(list), true);
-      } catch (e) {
-        console.error('수리요청 저장 실패', e);
-      }
+      await storeSetList(RP_STORAGE_KEY, list, true);
     }
 
     async function renderRepairList() {
@@ -1602,20 +1622,11 @@
     let chViewYear, chViewMonth, chSelectedDateKey = null;
 
     async function getClubhouseReservations() {
-      try {
-        const res = await window.storage.get(CH_STORAGE_KEY, true);
-        return res ? JSON.parse(res.value) : [];
-      } catch (e) {
-        return [];
-      }
+      return storeGetList(CH_STORAGE_KEY, true);
     }
 
     async function saveClubhouseReservations(list) {
-      try {
-        await window.storage.set(CH_STORAGE_KEY, JSON.stringify(list), true);
-      } catch (e) {
-        console.error('클럽하우스 예약 저장 실패', e);
-      }
+      await storeSetList(CH_STORAGE_KEY, list, true);
     }
 
     function changeCalendarMonth(delta) {
