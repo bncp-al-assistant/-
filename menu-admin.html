@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BNCP 식단표 관리</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #202124;
+    color: #e8eaed;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 6px; }
+  .sub { color: #9aa0a6; font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+  .status-box {
+    background-color: #303134;
+    border: 1px solid #5f6368;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #bdc1c6;
+    margin-bottom: 20px;
+  }
+  .status-box strong { color: #8ab4f8; }
+  .day-card {
+    background-color: #303134;
+    border: 1px solid #3c4043;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .day-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  .day-card-header input {
+    flex: 1;
+    background-color: #202124;
+    border: 1px solid #3c4043;
+    border-radius: 6px;
+    color: #ff6b00;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+  .remove-day-btn {
+    background-color: #3c2a1e;
+    border: 1px solid #ff6b00;
+    color: #ff6b00;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .remove-day-btn:hover { background-color: #ff6b00; color: #fff; }
+  .meal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .meal-grid label { display: block; font-size: 12px; color: #8ab4f8; margin-bottom: 5px; font-weight: 600; }
+  .meal-grid textarea {
+    width: 100%;
+    min-height: 130px;
+    background-color: #202124;
+    border: 1px solid #3c4043;
+    border-radius: 6px;
+    color: #e8eaed;
+    font-size: 13px;
+    padding: 8px 10px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.6;
+  }
+  @media (max-width: 700px) { .meal-grid { grid-template-columns: 1fr; } }
+  .btn {
+    background-color: #303134;
+    border: 1px solid #5f6368;
+    color: #e8eaed;
+    padding: 10px 18px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #8ab4f8; color: #8ab4f8; }
+  .btn-primary { background-color: #ff6b00; border-color: #ff6b00; color: #fff; font-weight: bold; }
+  .btn-primary:hover { background-color: #e05e00; color: #fff; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+  .label-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+  .label-row label { font-size: 13px; color: #9aa0a6; white-space: nowrap; }
+  .label-row input {
+    flex: 1;
+    background-color: #303134;
+    border: 1px solid #3c4043;
+    border-radius: 6px;
+    color: #e8eaed;
+    padding: 9px 12px;
+    font-size: 14px;
+  }
+  .hint { font-size: 12px; color: #9aa0a6; margin-top: 4px; line-height: 1.6; }
+  .hint b { color: #f28b30; }
+  #resultMsg { margin-top: 14px; font-size: 13px; white-space: pre-wrap; }
+  #resultMsg.ok { color: #6fd095; }
+  #resultMsg.err { color: #ff6b6b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🍽️ BNCP 식단표 관리</h1>
+  <p class="sub">
+    여기서 저장하면 직원 화면(BNCP AI Assistant)의 "주간 식단표"에 바로 반영됩니다. 화면 코드는 전혀 건드릴 필요 없습니다.<br>
+    각 칸에는 메뉴를 <b>한 줄에 하나씩</b> 적어주세요. 특식(강조 표시)으로 보이게 하려면 줄 맨 앞에 <b>!!</b> 를 붙이세요. 예: <code>!!잔치국수</code>
+  </p>
+
+  <div class="status-box" id="statusBox">불러오는 중...</div>
+
+  <div class="label-row">
+    <label for="menuLabel">표 제목(선택)</label>
+    <input type="text" id="menuLabel" placeholder="예: 8/8~8/14">
+  </div>
+
+  <div id="daysContainer"></div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="addDay()">+ 요일 추가</button>
+    <button class="btn" onclick="loadCurrentMenu()">현재 저장된 식단표 다시 불러오기</button>
+    <button class="btn btn-primary" onclick="saveMenu()">💾 저장하기</button>
+  </div>
+
+  <div id="resultMsg"></div>
+</div>
+
+<script>
+  // ⚠️ 실제 배포된 Worker 주소로 맞춰져 있습니다. 주소가 바뀌면 여기도 함께 바꿔주세요.
+  const API_BASE = 'https://odd-butterfly-b936.chogak1449.workers.dev';
+
+  const BREAKFAST_SIDES = ['야채샐러드/토마토', '모닝빵/잼/버터', '시리얼/우유', '커피/음료'];
+  const MAIN_MEAL_SIDES = ['야채스틱/쌈장', '과일', '커피/음료'];
+
+  // 이번 주(2026-08-08~08-14) 실제 식단표를 기본값으로 미리 채워둡니다.
+  // 다음 주부터는 "현재 저장된 식단표 다시 불러오기"로 최신 데이터를 불러온 뒤 수정해서 저장하면 됩니다.
+  const SEED_MENU = {
+    '토(8/8)': {
+      조식: ['쌀밥/잡곡밥', '김치해장국', '멸치고추볶음', '가지나물', '깍두기', ...BREAKFAST_SIDES],
+      중식: ['쌀밥', '!!잔치국수', '모듬전(생선전·호박전·육원전)', '고추튀김', '겉절이', ...MAIN_MEAL_SIDES],
+      석식: ['쌀밥', '애호박깻잎국', '조기구이', '감자조림', '파래무침', '배추김치', ...MAIN_MEAL_SIDES],
+    },
+    '일(8/9)': {
+      조식: ['쌀밥/잡곡밥', '배추속대국', '고추참치', '명엽채볶음', '호박나물', '배추김치', ...BREAKFAST_SIDES],
+      중식: ['!!강된장비빔밥', '들깨무채국', '버섯불고기', '무생채', '마늘쫑무침', '배추김치', ...MAIN_MEAL_SIDES],
+      석식: ['쌀밥', '스팸두부찌개', '가자미구이', '계란말이', '콩자반', '배추김치', ...MAIN_MEAL_SIDES],
+    },
+    '월(8/10)': {
+      조식: ['!!나카사키짬뽕라면', '!!오복지', '!!배추김치', ...BREAKFAST_SIDES],
+      중식: ['쌀밥/잡곡밥', '육개장', '새우브로콜리볶음', '오징어젓', '근대나물', '배추김치', ...MAIN_MEAL_SIDES],
+      석식: ['쌀밥', '참치감자짜글이', '깐풍기', '잡채해물완자', '오이생채', '배추김치', ...MAIN_MEAL_SIDES],
+    },
+    '화(8/11)': {
+      조식: ['쌀밥', '사골우거지된장국', '명란젓', '진미채볶음', '취나물', '배추김치', ...BREAKFAST_SIDES],
+      중식: ['!!야채비빔밥', '소고기미역국', '꽁치구이', '감자조림', '냉이나물', '배추김치', ...MAIN_MEAL_SIDES],
+      석식: ['쌀밥', '동치미', '!!량향비빔국수', '김말이튀김', '양파고추장아찌', '겉절이', ...MAIN_MEAL_SIDES],
+    },
+    '수(8/12)': {
+      조식: ['쌀밥', '도토리묵채은국', '소고기장조림', '미역즐거리', '고추지무침', '배추김치', ...BREAKFAST_SIDES],
+      중식: ['쌀밥/잡곡밥', '닭곰탕', '코다리강정', '간장깻잎지', '배추김치', ...MAIN_MEAL_SIDES],
+      석식: ['!!하이라이스', '우동장국', '오꼬노미야끼', '마카로니샐러드', '단무지', '배추김치', ...MAIN_MEAL_SIDES],
+    },
+    '목(8/13)': {
+      조식: ['!!김밥', '!!라면', '!!배추김치', ...BREAKFAST_SIDES],
+      중식: ['쌀밥/잡곡밥', '감자국', '낙지볶음', '날치알계란찜', '우거지나물', '배추김치', ...MAIN_MEAL_SIDES],
+      석식: ['쌀밥', '계란국', '!!간짜장', '토마토당수육', '단무지', '배추김치', ...MAIN_MEAL_SIDES],
+    },
+    '금(8/14) 말복': {
+      조식: ['!!쌀밥/잡곡밥', '!!황태해장국', '!!어묵야채볶음', '!!돌자반', '!!깻잎무침', '!!배추김치', ...BREAKFAST_SIDES],
+      중식: ['!!쌀밥', '!!서리태콩국수', '!!치킨가라아게', '!!양배추샐러드', '!!겉절이', ...MAIN_MEAL_SIDES],
+      석식: ['!!옛날도시락', '!!컵라면', ...MAIN_MEAL_SIDES],
+    },
+  };
+
+  function dayCardHtml(dayLabel, meals) {
+    const id = 'day_' + Math.random().toString(36).slice(2, 8);
+    return `
+      <div class="day-card" id="${id}">
+        <div class="day-card-header">
+          <input type="text" class="day-label-input" value="${dayLabel.replace(/"/g, '&quot;')}" placeholder="예: 월(8/10)">
+          <button class="remove-day-btn" onclick="document.getElementById('${id}').remove()">삭제</button>
+        </div>
+        <div class="meal-grid">
+          <div>
+            <label>조식</label>
+            <textarea class="meal-input" data-meal="조식">${(meals.조식 || []).join('\n')}</textarea>
+          </div>
+          <div>
+            <label>중식</label>
+            <textarea class="meal-input" data-meal="중식">${(meals.중식 || []).join('\n')}</textarea>
+          </div>
+          <div>
+            <label>석식</label>
+            <textarea class="meal-input" data-meal="석식">${(meals.석식 || []).join('\n')}</textarea>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDays(menuObj) {
+    const container = document.getElementById('daysContainer');
+    container.innerHTML = '';
+    Object.keys(menuObj).forEach(day => {
+      container.insertAdjacentHTML('beforeend', dayCardHtml(day, menuObj[day]));
+    });
+  }
+
+  function addDay() {
+    document.getElementById('daysContainer').insertAdjacentHTML(
+      'beforeend',
+      dayCardHtml('새 요일', { 조식: [], 중식: [], 석식: [] })
+    );
+  }
+
+  function collectMenuFromForm() {
+    const result = {};
+    document.querySelectorAll('.day-card').forEach(card => {
+      const dayLabel = card.querySelector('.day-label-input').value.trim();
+      if (!dayLabel) return;
+      const meals = {};
+      card.querySelectorAll('.meal-input').forEach(ta => {
+        const mealName = ta.dataset.meal;
+        const lines = ta.value.split('\n').map(l => l.trim()).filter(Boolean);
+        meals[mealName] = lines;
+      });
+      result[dayLabel] = meals;
+    });
+    return result;
+  }
+
+  async function loadCurrentMenu() {
+    const statusBox = document.getElementById('statusBox');
+    statusBox.textContent = '불러오는 중...';
+    try {
+      const res = await fetch(`${API_BASE}?type=menu_get`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || '조회 실패');
+      if (data.menu) {
+        renderDays(data.menu);
+        document.getElementById('menuLabel').value = data.label || '';
+        statusBox.innerHTML = `<strong>현재 저장된 식단표</strong>가 로드되었습니다. (제목: ${data.label || '없음'} / 마지막 수정: ${data.updatedAt ? new Date(data.updatedAt).toLocaleString('ko-KR') : '-'})`;
+      } else {
+        renderDays(SEED_MENU);
+        document.getElementById('menuLabel').value = '8/8~8/14';
+        statusBox.innerHTML = '<strong>아직 저장된 식단표가 없습니다.</strong> 이번 주(8/8~8/14) 실제 식단표를 기본값으로 채워뒀습니다. 필요하면 수정한 뒤 저장하세요.';
+      }
+    } catch (e) {
+      renderDays(SEED_MENU);
+      statusBox.textContent = `⚠️ 현재 저장된 식단표를 불러오지 못했습니다 (${e.message}). 기본값을 채워뒀습니다.`;
+    }
+  }
+
+  async function saveMenu() {
+    const resultMsg = document.getElementById('resultMsg');
+    const data = collectMenuFromForm();
+    if (Object.keys(data).length === 0) {
+      resultMsg.className = 'err';
+      resultMsg.textContent = '저장할 요일이 없습니다. 최소 1개 이상의 요일을 입력해주세요.';
+      return;
+    }
+    resultMsg.className = '';
+    resultMsg.textContent = '저장 중...';
+    try {
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'menu_set', label: document.getElementById('menuLabel').value.trim(), data })
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || '저장 실패');
+      resultMsg.className = 'ok';
+      resultMsg.textContent = '✅ 저장되었습니다! 직원 화면에서 "주간 식단표"를 열면 바로 반영된 걸 확인할 수 있습니다.';
+    } catch (e) {
+      resultMsg.className = 'err';
+      resultMsg.textContent = `⚠️ 저장에 실패했습니다: ${e.message}`;
+    }
+  }
+
+  loadCurrentMenu();
+</script>
+</body>
+</html>
