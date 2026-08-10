@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BNCP 캠프 위치도 관리</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #202124;
+    color: #e8eaed;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 6px; }
+  .sub { color: #9aa0a6; font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+  .status-box {
+    background-color: #303134;
+    border: 1px solid #5f6368;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #bdc1c6;
+    margin-bottom: 20px;
+  }
+  .status-box strong { color: #8ab4f8; }
+  .map-card {
+    background-color: #303134;
+    border: 1px solid #3c4043;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .map-card h2 {
+    color: #ff6b00;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  .map-card .meta {
+    font-size: 12px;
+    color: #9aa0a6;
+    margin-bottom: 14px;
+  }
+  .preview-box {
+    background-color: #202124;
+    border: 1px dashed #3c4043;
+    border-radius: 8px;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .preview-box img {
+    max-width: 100%;
+    max-height: 360px;
+    display: block;
+  }
+  .preview-box .placeholder {
+    color: #5f6368;
+    font-size: 13px;
+    padding: 40px;
+    text-align: center;
+  }
+  .file-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  input[type="file"] {
+    color: #bdc1c6;
+    font-size: 13px;
+  }
+  .btn {
+    background-color: #202124;
+    border: 1px solid #5f6368;
+    color: #e8eaed;
+    padding: 9px 16px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #8ab4f8; color: #8ab4f8; }
+  .btn-primary { background-color: #ff6b00; border-color: #ff6b00; color: #fff; font-weight: bold; }
+  .btn-primary:hover { background-color: #e05e00; color: #fff; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .top-btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .result-msg { margin-top: 10px; font-size: 13px; white-space: pre-wrap; }
+  .result-msg.ok { color: #6fd095; }
+  .result-msg.err { color: #ff6b6b; }
+  .hint { font-size: 12px; color: #9aa0a6; margin-top: 8px; line-height: 1.6; }
+  .hint b { color: #f28b30; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🗺️ BNCP 캠프 위치도 관리</h1>
+  <p class="sub">
+    여기서 저장하면 앱의 <b>[캠프 위치도]</b> 버튼을 눌렀을 때 보이는 이미지가 즉시 갱신됩니다. index.html은 전혀 건드릴 필요 없습니다.<br>
+    이미지 파일(JPG/PNG)을 선택하면 자동으로 적당한 크기로 압축한 뒤 저장합니다. 너무 큰 원본 이미지도 그대로 올려도 괜찮습니다.
+  </p>
+
+  <div class="status-box" id="statusBox">불러오는 중...</div>
+
+  <div class="top-btn-row">
+    <button class="btn" onclick="loadCurrentMaps()">현재 저장된 위치도 다시 불러오기</button>
+  </div>
+
+  <div class="map-card">
+    <h2>캠프 전체 시설물 위치</h2>
+    <div class="meta" id="fullMeta">-</div>
+    <div class="preview-box" id="fullPreview"><span class="placeholder">이미지 미리보기</span></div>
+    <div class="file-row">
+      <input type="file" id="fullFileInput" accept="image/*" onchange="handleFileSelect('full', this)">
+      <button class="btn btn-primary" id="fullSaveBtn" onclick="saveMap('full')" disabled>💾 이 이미지로 저장</button>
+    </div>
+    <div class="result-msg" id="fullResultMsg"></div>
+  </div>
+
+  <div class="map-card">
+    <h2>HENC 시설물 위치</h2>
+    <div class="meta" id="hencMeta">-</div>
+    <div class="preview-box" id="hencPreview"><span class="placeholder">이미지 미리보기</span></div>
+    <div class="file-row">
+      <input type="file" id="hencFileInput" accept="image/*" onchange="handleFileSelect('henc', this)">
+      <button class="btn btn-primary" id="hencSaveBtn" onclick="saveMap('henc')" disabled>💾 이 이미지로 저장</button>
+    </div>
+    <div class="result-msg" id="hencResultMsg"></div>
+  </div>
+
+  <p class="hint">
+    <b>참고:</b> 두 위치도는 각각 독립적으로 저장됩니다. 하나만 새 이미지로 바꿔도 다른 하나는 그대로 유지됩니다.
+  </p>
+</div>
+
+<script>
+  // ⚠️ 실제 배포된 Worker 주소로 맞춰져 있습니다. 주소가 바뀌면 여기도 함께 바꿔주세요.
+  const API_BASE = 'https://odd-butterfly-b936.chogak1449.workers.dev';
+
+  const MAP_LABELS = { full: '캠프 전체 시설물 위치', henc: 'HENC 시설물 위치' };
+  const pendingImages = { full: null, henc: null };
+
+  const MAX_DIMENSION = 1400; // 이 폭(px)을 넘으면 자동 축소
+  const JPEG_QUALITY = 0.82;
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function compressImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > MAX_DIMENSION) {
+          height = Math.round(height * (MAX_DIMENSION / width));
+          width = MAX_DIMENSION;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        // 흰 배경 채우기 (투명 PNG를 JPEG로 바꿀 때 검게 나오는 것 방지)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
+  async function handleFileSelect(key, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const resultMsg = document.getElementById(`${key}ResultMsg`);
+    resultMsg.className = 'result-msg';
+    resultMsg.textContent = '이미지 처리 중...';
+
+    try {
+      const rawDataUrl = await readFileAsDataUrl(file);
+      const compressed = await compressImage(rawDataUrl);
+      pendingImages[key] = compressed;
+
+      const preview = document.getElementById(`${key}Preview`);
+      preview.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = compressed;
+      preview.appendChild(img);
+
+      const approxKB = Math.round(compressed.length / 1024);
+      resultMsg.textContent = `미리보기 준비 완료 (약 ${approxKB}KB). 저장 버튼을 눌러 반영하세요.`;
+      document.getElementById(`${key}SaveBtn`).disabled = false;
+    } catch (e) {
+      resultMsg.className = 'result-msg err';
+      resultMsg.textContent = `⚠️ 이미지 처리에 실패했습니다: ${e.message || e}`;
+    }
+  }
+
+  async function saveMap(key) {
+    const resultMsg = document.getElementById(`${key}ResultMsg`);
+    const image = pendingImages[key];
+    if (!image) {
+      resultMsg.className = 'result-msg err';
+      resultMsg.textContent = '먼저 이미지를 선택해주세요.';
+      return;
+    }
+
+    resultMsg.className = 'result-msg';
+    resultMsg.textContent = '저장 중...';
+
+    try {
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'sitemap_set', key, image, label: MAP_LABELS[key] })
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || '저장 실패');
+      resultMsg.className = 'result-msg ok';
+      resultMsg.textContent = `✅ 저장되었습니다! 앱에서 [캠프 위치도] > [${MAP_LABELS[key]}] 탭을 열면 바로 반영된 걸 확인할 수 있습니다.`;
+      document.getElementById(`${key}Meta`).textContent = `마지막 수정: ${new Date(result.updatedAt).toLocaleString('ko-KR')}`;
+    } catch (e) {
+      resultMsg.className = 'result-msg err';
+      resultMsg.textContent = `⚠️ 저장에 실패했습니다: ${e.message}`;
+    }
+  }
+
+  async function loadCurrentMaps() {
+    const statusBox = document.getElementById('statusBox');
+    statusBox.textContent = '불러오는 중...';
+    try {
+      const res = await fetch(`${API_BASE}?type=sitemap_get`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || '조회 실패');
+
+      let anyFound = false;
+      for (const key of ['full', 'henc']) {
+        const map = data.maps && data.maps[key];
+        const preview = document.getElementById(`${key}Preview`);
+        const meta = document.getElementById(`${key}Meta`);
+        if (map && map.image) {
+          anyFound = true;
+          preview.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = map.image;
+          preview.appendChild(img);
+          meta.textContent = `마지막 수정: ${map.updatedAt ? new Date(map.updatedAt).toLocaleString('ko-KR') : '-'}`;
+        } else {
+          preview.innerHTML = '<span class="placeholder">등록된 이미지 없음</span>';
+          meta.textContent = '아직 등록되지 않음';
+        }
+      }
+
+      statusBox.innerHTML = anyFound
+        ? '<strong>현재 저장된 위치도</strong>를 불러왔습니다. 새 이미지를 선택하면 해당 위치도만 교체됩니다.'
+        : '<strong>아직 등록된 위치도가 없습니다.</strong> 아래에서 이미지를 선택하고 저장해주세요.';
+    } catch (e) {
+      statusBox.textContent = `⚠️ 현재 저장된 위치도를 불러오지 못했습니다 (${e.message}).`;
+    }
+  }
+
+  loadCurrentMaps();
+</script>
+</body>
+</html>
