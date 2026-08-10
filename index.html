@@ -952,11 +952,11 @@
 <body>
 
   <header>
-    <a onclick="openGuideModal()">캠프/업무 안내</a>
+    <a onclick="openManualModal()">사용 매뉴얼</a>
     <a onclick="openMenuModal()">주간 식단표</a>
     <a onclick="openHaircutModal()">이발서비스 예약</a>
-    <a onclick="openRepairModal()">숙소 수리요청</a>
     <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
+    <a onclick="openRepairModal()">숙소 수리요청</a>
     <div class="profile-icon">한화</div>
   </header>
 
@@ -972,11 +972,11 @@
 
     <div class="btn-group">
       <button class="btn btn-primary" onclick="handleSearch()">AI 답변 요청</button>
+      <button class="btn" onclick="openManualModal()">📖 BNCP AI Assistant 매뉴얼</button>
       <button class="btn" onclick="openMenuModal()">주간 식단표</button>
-      <button class="btn" onclick="openGuideModal()">캠프 생활/업무 안내</button>
       <button class="btn" onclick="openHaircutModal()">이발서비스 예약</button>
-      <button class="btn" onclick="openRepairModal()">숙소 수리요청</button>
       <button class="btn" onclick="openClubhouseModal()">클럽하우스/라운지 예약</button>
+      <button class="btn" onclick="openRepairModal()">숙소 수리요청</button>
     </div>
 
     <div class="response-area" id="responseArea"></div>
@@ -1002,105 +1002,187 @@
     </div>
   </div>
 
-  <!-- 2. 부임자 및 캠프 생활/업무 안내 모달 -->
-  <div class="modal-overlay" id="guideModal" onclick="handleModalOverlayClick(event, 'guideModal')">
+  <!-- 2. BNCP AI Assistant 사용 매뉴얼 모달 -->
+  <div class="modal-overlay" id="manualModal" onclick="handleModalOverlayClick(event, 'manualModal')">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>BNCP 캠프 생활 및 업무 안내</h2>
-        <button class="close-btn" onclick="closeModal('guideModal')">&times;</button>
+        <h2>📖 BNCP AI Assistant 사용 매뉴얼</h2>
+        <button class="close-btn" onclick="closeModal('manualModal')">&times;</button>
       </div>
       <div class="tab-bar">
-        <button class="tab-btn active" onclick="showGuideTab('tab1', this)">식당 이용</button>
-        <button class="tab-btn" onclick="showGuideTab('tab2', this)">숙소/오피스</button>
-        <button class="tab-btn" onclick="showGuideTab('tab3', this)">부대/체육시설</button>
-        <button class="tab-btn" onclick="showGuideTab('tab4', this)">의료/안전수칙</button>
-        <button class="tab-btn" onclick="showGuideTab('tab5', this)">휴가/부임절차</button>
+        <button class="tab-btn active" onclick="showManualTab('mtab1', this)">개요</button>
+        <button class="tab-btn" onclick="showManualTab('mtab2', this)">AI 채팅</button>
+        <button class="tab-btn" onclick="showManualTab('mtab3', this)">예약 기능</button>
+        <button class="tab-btn" onclick="showManualTab('mtab4', this)">클럽하우스</button>
+        <button class="tab-btn" onclick="showManualTab('mtab5', this)">FAQ</button>
+        <button class="tab-btn" onclick="showManualTab('mtab6', this)">문의처</button>
       </div>
       <div class="modal-body">
 
-        <!-- Tab 1: 식당 이용 -->
-        <div id="tab1" class="info-section">
+        <!-- 개요 -->
+        <div id="mtab1" class="info-section">
           <div class="info-card">
-            <h3>🍽️ 직원식당 이용시간</h3>
+            <h3>ℹ️ 서비스 소개</h3>
+            <p>BNCP AI Assistant는 비스마야 캠프 근무 임직원의 생활 편의를 지원하기 위한 통합 안내·신청 서비스입니다. 식단표 확인부터 각종 시설 예약, 수리 요청까지 한 화면에서 처리할 수 있습니다.</p>
+          </div>
+          <div class="info-card">
+            <h3>🔗 접속 방법</h3>
+            <p>PC 또는 스마트폰 브라우저에서 접속합니다. 별도 앱 설치나 로그인은 필요하지 않습니다. 스마트폰에서는 브라우저 메뉴의 '홈 화면에 추가'를 이용하면 앱처럼 바로 실행할 수 있습니다.</p>
+          </div>
+          <div class="info-card">
+            <h3>🧭 주요 기능</h3>
             <ul>
-              <li><strong>조식:</strong> 06:00 ~ 07:00 (※ 금요일: 07:00 ~ 08:00)</li>
-              <li><strong>중식:</strong> 11:30 ~ 12:30 (※ 금요일: 12:00 ~ 13:00)</li>
-              <li><strong>석식:</strong> 17:30 ~ 18:30 (※ 금요일: 18:00 ~ 19:00)</li>
+              <li><strong>AI 답변 요청:</strong> 식단·복지·캠프 생활·예약 현황을 자연어로 질문하거나, 대화로 바로 예약·신청까지 진행</li>
+              <li><strong>주간 식단표:</strong> 조식·중식·석식 메뉴를 날짜별 탭으로 확인 (특식은 강조 표시)</li>
+              <li><strong>이발서비스 예약:</strong> 매주 금요일 운영, 커트·염색 선택 후 신청 (시간은 자동 배정)</li>
+              <li><strong>숙소 수리요청:</strong> 전기·배관·에어컨 등 수리 접수 및 처리 현황 확인</li>
+              <li><strong>클럽하우스/라운지 예약:</strong> 달력에서 날짜 선택 후 회식·행사 공간 예약 및 취소</li>
             </ul>
             <div class="notice-box">
-              ⚠️ <strong>주의사항:</strong> 식당 외부로 음식물 Take-Out을 엄격히 금지합니다.
+              💡 캠프 생활 안내(식당·숙소·부대시설·의료·휴가 절차 등)가 궁금하시면 <strong>[AI 답변 요청]</strong> 검색창에 자연어로 물어보시면 됩니다. (예: "이발소 언제 운영해?", "휴가 신청은 며칠 전에 해야 해?")
             </div>
           </div>
         </div>
 
-        <!-- Tab 2: 숙소 / 오피스 -->
-        <div id="tab2" class="info-section" style="display:none;">
+        <!-- AI 채팅 -->
+        <div id="mtab2" class="info-section" style="display:none;">
           <div class="info-card">
-            <h3>🏢 캠프 오피스 (1동)</h3>
-            <p><strong>운영시간:</strong> 07:00 ~ 22:00 (캠프 보스 24시간 상주)</p>
-            <p><strong>주요 업무:</strong> 부임/출장 시 숙소 배정, 하자 및 불편사항 접수, 소모품 교환</p>
+            <h3>💬 사용 방법</h3>
+            <p>메인 화면 중앙의 검색창에 궁금한 내용을 문장으로 입력한 뒤 <strong>[AI 답변 요청]</strong> 버튼을 누르거나 Enter 키를 누르면, AI 비서가 실제 등록된 데이터를 근거로 답변합니다. 대화는 말풍선 형태로 이어지며, 이전 대화 내용을 기억합니다.</p>
           </div>
           <div class="info-card">
-            <h3>🧺 세탁 서비스 & 소모품</h3>
+            <h3>📝 질문 예시</h3>
             <ul>
-              <li><strong>세탁 수거:</strong> 출근 전 개인 세탁망을 복도 수거함에 집하 (홀수일 수거)</li>
-              <li><strong>침구 청소:</strong> 침구 세탁 월 1회, 개인 청소 일일 1회</li>
-              <li><strong>소모품 지급:</strong> 침구 set, 수건(3개), 샴푸/비누, 휴지, 멀티탭 등 (1:1 교환 원칙)</li>
+              <li>오늘 점심 메뉴 뭐야?</li>
+              <li>이번 주 금요일 석식 알려줘</li>
+              <li>이발소 언제 운영해?</li>
+              <li>휴가 신청은 며칠 전에 해야 해?</li>
+              <li>8월 15일에 클럽하우스 예약 현황 알려줘?</li>
+              <li>미처리된 숙소 수리요청 알려줘</li>
             </ul>
           </div>
-        </div>
-
-        <!-- Tab 3: 부대/체육시설 -->
-        <div id="tab3" class="info-section" style="display:none;">
           <div class="info-card">
-            <h3>⛳ Screen Golf & Indoor Sports</h3>
-            <ul>
-              <li><strong>1동 (임원/부장):</strong> 스크린 4실, 연습타석 6개 / 탁구, 당구, 헬스</li>
-              <li><strong>2동/3동 (차장~사원):</strong> 연습타석 6개(2동) / 헬스기구, 바이크, 체중계(3동)</li>
-              <li><strong>이용시간:</strong> 평일 18:00~21:00 / 휴일·금요일 08:00~22:00</li>
-            </ul>
+            <h3>✅ 대화로 바로 예약·신청하기</h3>
+            <p>이발서비스 예약, 숙소 수리요청, 클럽하우스 예약은 화면 메뉴를 열지 않고 <strong>대화만으로도 신청</strong>할 수 있습니다. 필요한 정보(이름·날짜·서비스 종류 등)를 포함해서 요청하면, AI가 접수 전에 신청 내용을 요약해서 보여주고 <strong>"이대로 진행할까요?"</strong>라고 먼저 확인을 요청합니다. "네" 등으로 동의하면 그때 실제로 접수됩니다.</p>
             <div class="notice-box">
-              👟 헬스장 내 안전화 착용 금지, 금연, 이용 후 전등/에어컨 OFF 필수!
+              예: "이발 예약해줘, 이름은 홍길동, 이번 주 금요일 커트로" → 확인 요청 → "네" → 예약 완료
             </div>
           </div>
           <div class="info-card">
-            <h3>📚 도서관 & 이발소 & 사우나</h3>
-            <ul>
-              <li><strong>도서관 (1동):</strong> 평일 18:00~22:00 / 휴일·금 10:00~22:00 (1회 4박 1권)</li>
-              <li><strong>이발소 (1동):</strong> 매주 금, 토 08:00~21:00 (선착순 이용, 팁 절대 금지)</li>
-              <li><strong>사우나:</strong> 휴일/금요일 08:00~21:00 운영</li>
-              <li><strong>시설 문의:</strong> 운영지원팀 (0780-929-1232)</li>
-            </ul>
+            <h3>🔄 대화 초기화</h3>
+            <p>대화창 우측 하단의 <strong>[대화 초기화]</strong>를 누르면 지금까지의 대화 내용이 모두 지워지고 새로운 대화를 시작할 수 있습니다.</p>
+          </div>
+          <div class="notice-box">
+            ⚠️ AI는 시스템에 실제로 등록된 데이터(식단표, 예약 현황, 수리요청 현황)를 근거로 답변합니다. 등록되지 않은 정보는 임의로 만들어내지 않으며, 이 경우 담당자 문의를 안내합니다.
           </div>
         </div>
 
-        <!-- Tab 4: 의료 / 안전수칙 -->
-        <div id="tab4" class="info-section" style="display:none;">
+        <!-- 예약 기능 (식단표/이발/수리) -->
+        <div id="mtab3" class="info-section" style="display:none;">
           <div class="info-card">
-            <h3>🏥 캠프 Clinic (의료실)</h3>
-            <p><strong>담당자:</strong> HSE팀</p>
-            <p><strong>연락처:</strong> 0780-926-2446 (내선 4327)</p>
+            <h3>🍽️ 주간 식단표</h3>
+            <ol>
+              <li>메인 화면에서 [주간 식단표] 버튼을 클릭합니다.</li>
+              <li>상단의 날짜 탭을 클릭해 원하는 날짜를 선택합니다.</li>
+              <li>조식·중식·석식 메뉴가 각각 카드 형태로 표시됩니다.</li>
+            </ol>
+            <p>특식은 강조 색상으로 표시되어 쉽게 확인할 수 있습니다. 등록된 기간은 관리자가 갱신한 범위에 따라 달라집니다.</p>
+            <table style="width:100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;">
+              <tr style="background:#202124;"><td style="padding:6px 10px; border:1px solid #3c4043;"><strong>구분</strong></td><td style="padding:6px 10px; border:1px solid #3c4043;"><strong>평일</strong></td><td style="padding:6px 10px; border:1px solid #3c4043;"><strong>금요일</strong></td></tr>
+              <tr><td style="padding:6px 10px; border:1px solid #3c4043;">조식</td><td style="padding:6px 10px; border:1px solid #3c4043;">06:00~07:00</td><td style="padding:6px 10px; border:1px solid #3c4043;">07:00~08:00</td></tr>
+              <tr><td style="padding:6px 10px; border:1px solid #3c4043;">중식</td><td style="padding:6px 10px; border:1px solid #3c4043;">11:30~12:30</td><td style="padding:6px 10px; border:1px solid #3c4043;">12:00~13:00</td></tr>
+              <tr><td style="padding:6px 10px; border:1px solid #3c4043;">석식</td><td style="padding:6px 10px; border:1px solid #3c4043;">17:30~18:30</td><td style="padding:6px 10px; border:1px solid #3c4043;">18:00~19:00</td></tr>
+            </table>
+            <div class="notice-box">식당 외부로 음식물 반출(Take-Out)은 엄격히 금지되어 있습니다.</div>
           </div>
+
           <div class="info-card">
-            <h3>🛡️ VCC 출입 통제 & 금지 품목</h3>
-            <ul>
-              <li><strong>반입 금지:</strong> 총기류, 도기류, 인화성 위험물 (수시 불시점검)</li>
-              <li><strong>VCC 정밀검색:</strong> 24시간 문형 검색대 및 X-Ray 투과 검색 진행</li>
-              <li><strong>절전/절수:</strong> 출근 시 숙소 에어컨/전등 스위치 OFF, 잔반 줄이기 실천</li>
-            </ul>
+            <h3>💈 이발서비스 예약</h3>
+            <p>이발소는 매주 금요일 10:00~18:00 운영되며, 40분 단위로 접수 순서에 따라 자동 배정됩니다.</p>
+            <ol>
+              <li>메인 화면에서 [이발서비스 예약]을 클릭합니다.</li>
+              <li>이름을 입력합니다.</li>
+              <li>희망 날짜를 선택합니다. (금요일만 선택 가능하도록 자동 제공됩니다.)</li>
+              <li>서비스 종류를 커트 또는 염색 중에서 선택합니다.</li>
+              <li>[예약 신청하기] 버튼을 클릭하면, 시간이 자동 배정되어 접수가 완료됩니다.</li>
+            </ol>
+            <div class="notice-box">이발소 이용 시 팁 제공은 절대 금지입니다.</div>
+          </div>
+
+          <div class="info-card">
+            <h3>🔧 숙소 수리요청</h3>
+            <ol>
+              <li>메인 화면에서 [숙소 수리요청]을 클릭합니다.</li>
+              <li>신청자 이름과 동/호수를 입력합니다. (예: 2동 305호)</li>
+              <li>수리 유형을 선택합니다. (전기 / 배관·누수 / 에어컨·냉난방 / 가구·집기 / 도어·잠금장치 / 기타)</li>
+              <li>상세 내용을 구체적으로 입력합니다.</li>
+              <li>연락처를 입력합니다. (선택 사항)</li>
+              <li>[수리요청 제출] 버튼을 클릭하면 접수가 완료됩니다.</li>
+            </ol>
+            <p><strong>처리 현황 확인:</strong> 접수된 요청은 [수리 접수 현황]에 바로 표시됩니다. 담당자가 완료 처리하면 [✅ 수리 완료 현황]을 클릭해 펼쳐서 확인할 수 있습니다.</p>
           </div>
         </div>
 
-        <!-- Tab 5: 휴가 / 부임절차 -->
-        <div id="tab5" class="info-section" style="display:none;">
+        <!-- 클럽하우스 -->
+        <div id="mtab4" class="info-section" style="display:none;">
           <div class="info-card">
-            <h3>✈️ 정기휴가 및 부임 기준</h3>
+            <h3>🏠 클럽하우스 / 라운지 예약</h3>
+            <p>회식이나 행사를 위한 공간을 예약할 수 있습니다. 화면을 열면 오늘 날짜가 자동으로 선택되어 바로 예약 현황과 신청 폼을 확인할 수 있습니다.</p>
+            <table style="width:100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;">
+              <tr style="background:#202124;"><td style="padding:6px 10px; border:1px solid #3c4043;"><strong>구분</strong></td><td style="padding:6px 10px; border:1px solid #3c4043;"><strong>신청 기한</strong></td><td style="padding:6px 10px; border:1px solid #3c4043;"><strong>운영일</strong></td></tr>
+              <tr><td style="padding:6px 10px; border:1px solid #3c4043;">평일 이용</td><td style="padding:6px 10px; border:1px solid #3c4043;">매일 오후 3시까지</td><td style="padding:6px 10px; border:1px solid #3c4043;">일·월·화·수</td></tr>
+              <tr><td style="padding:6px 10px; border:1px solid #3c4043;">주말 이용</td><td style="padding:6px 10px; border:1px solid #3c4043;">매주 목요일 오전 11시까지</td><td style="padding:6px 10px; border:1px solid #3c4043;">목·금·토, 한국인 공휴일</td></tr>
+            </table>
+          </div>
+          <div class="info-card">
+            <h3>📝 신청 방법</h3>
+            <ol>
+              <li>메인 화면에서 [클럽하우스/라운지 예약]을 클릭합니다.</li>
+              <li>왼쪽 달력에서 이용하고자 하는 날짜를 클릭합니다. 점이 표시된 날짜는 이미 예약이 있는 날짜입니다.</li>
+              <li>오른쪽에 해당 날짜의 예약 현황이 표시되므로, 사용 가능한 장소를 먼저 확인합니다.</li>
+              <li>팀명, 신청자, 사용 인원수, 장소를 순서대로 선택·입력합니다.</li>
+              <li>기본 제공 품목(야채·쌈장·기름장·석식메뉴)은 기본 선택되어 있으며, 필요 없는 항목은 체크를 해제합니다.</li>
+              <li>추가 요청사항이 있으면 입력합니다.</li>
+              <li>[이 날짜로 예약 신청하기] 버튼을 클릭하면 신청이 완료됩니다.</li>
+            </ol>
+            <div class="notice-box">같은 날짜에 동일한 장소가 이미 예약되어 있으면 중복 신청이 제한되며, 안내 메시지가 표시됩니다.</div>
+          </div>
+          <div class="info-card">
+            <h3>❌ 예약 취소</h3>
+            <ol>
+              <li>달력에서 해당 예약이 있는 날짜를 클릭합니다.</li>
+              <li>오른쪽 예약 현황 목록에서 취소할 예약을 찾습니다.</li>
+              <li>[취소] 버튼을 클릭하고 확인 창에서 승인하면 취소가 완료됩니다.</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- FAQ -->
+        <div id="mtab5" class="info-section" style="display:none;">
+          <div class="info-card">
+            <h3>❓ 자주 묻는 질문</h3>
+            <p><strong>Q. 화면이 예전 상태로 보입니다.</strong><br>A. 브라우저에 이전 화면이 저장되어 있을 수 있습니다. Ctrl+Shift+R (Mac은 Cmd+Shift+R)로 새로고침해 주세요.</p>
+            <p style="margin-top:12px;"><strong>Q. 예약 신청 시 오류 메시지가 뜹니다.</strong><br>A. 필수 항목이 모두 입력되었는지 확인해 주세요. 같은 날짜·장소에 이미 예약이 있는 경우에도 신청이 제한됩니다.</p>
+            <p style="margin-top:12px;"><strong>Q. AI가 답변을 못 합니다.</strong><br>A. 네트워크 연결 상태를 확인해 주세요. 지속될 경우 담당자에게 문의 바랍니다.</p>
+            <p style="margin-top:12px;"><strong>Q. 예약을 잘못 신청했습니다.</strong><br>A. 해당 메뉴에서 취소 버튼으로 취소하고 다시 신청해 주세요. 이발/수리요청/클럽하우스 모두 각자의 목록에서 취소할 수 있습니다.</p>
+            <p style="margin-top:12px;"><strong>Q. 식단표에 원하는 날짜가 없습니다.</strong><br>A. 식단표는 관리자가 등록한 기간만 표시됩니다. 아직 등록되지 않은 주간이라면 담당자에게 문의해 주세요.</p>
+            <p style="margin-top:12px;"><strong>Q. 이발/수리/클럽하우스를 채팅으로 바로 예약할 수 있나요?</strong><br>A. 네. [AI 답변 요청] 창에 필요한 정보를 포함해서 요청하면, 내용을 확인받은 뒤 예약해드립니다.</p>
+            <p style="margin-top:12px;"><strong>Q. 스마트폰에서도 사용할 수 있나요?</strong><br>A. 가능합니다. 화면 크기에 맞춰 자동으로 배치가 조정됩니다.</p>
+          </div>
+        </div>
+
+        <!-- 문의처 -->
+        <div id="mtab6" class="info-section" style="display:none;">
+          <div class="info-card">
+            <h3>☎️ 문의처</h3>
             <ul>
-              <li><strong>휴가 주기:</strong> 해외근무 3.5개월마다 14일 부여 (매주 목요일 출발)</li>
-              <li><strong>휴가 신청:</strong> 최소 4주 전 전자결재 완료 (운영지원팀 참조)</li>
-              <li><strong>부임비 지급:</strong> 별도 신청 없이 발권시스템 정보 확인 후 부임 달 익월 경비 지급일 지급</li>
+              <li><strong>클럽하우스/라운지 예약:</strong> 관리재경팀 조우형 과장 · 0780-929-1232</li>
+              <li><strong>부대시설·이발소·사우나:</strong> 관리재경팀 · 0780-929-1232</li>
+              <li><strong>숙소 수리·소모품:</strong> 캠프 오피스 · 0780-929-1232</li>
+              <li><strong>의료(Clinic):</strong> HSE팀 · 0780-926-2446 (내선 4327)</li>
             </ul>
           </div>
+          <div class="notice-box">본 매뉴얼은 서비스 개선에 따라 내용이 변경될 수 있습니다.</div>
         </div>
 
       </div>
@@ -1365,11 +1447,11 @@
     </div>
     <div class="footer-bottom">
       <div class="footer-links">
-        <a onclick="openGuideModal()">캠프 안내서</a>
+        <a onclick="openManualModal()">사용 매뉴얼</a>
         <a onclick="openMenuModal()">식단표</a>
         <a onclick="openHaircutModal()">이발서비스 예약</a>
-        <a onclick="openRepairModal()">숙소 수리요청</a>
         <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
+        <a onclick="openRepairModal()">숙소 수리요청</a>
       </div>
       <div>
         <span>Camp Service Center</span>
@@ -1472,7 +1554,7 @@
     function handleModalOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
 
     function openMenuModal() { openModal('menuModal'); renderMenu(); }
-    function openGuideModal() { openModal('guideModal'); }
+    function openManualModal() { openModal('manualModal'); }
     function openHaircutModal() { populateHaircutDates(); renderHaircutList(); openModal('haircutModal'); }
     function openRepairModal() { renderRepairList(); openModal('repairModal'); }
     async function openClubhouseModal() {
@@ -1481,10 +1563,10 @@
       await selectCalendarDate(dateKey(todayStart()));
     }
 
-    function showGuideTab(id, btn) {
-      document.querySelectorAll('#guideModal .info-section').forEach(s => s.style.display = 'none');
+    function showManualTab(id, btn) {
+      document.querySelectorAll('#manualModal .info-section').forEach(s => s.style.display = 'none');
       document.getElementById(id).style.display = 'flex';
-      document.querySelectorAll('#guideModal .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('#manualModal .tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     }
 
