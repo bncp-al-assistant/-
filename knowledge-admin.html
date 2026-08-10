@@ -1,1 +1,378 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BNCP 캠프 안내 지식 관리</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background-color: #202124;
+    color: #e8eaed;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    padding: 24px 16px 60px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin-bottom: 6px; }
+  .sub { color: #9aa0a6; font-size: 13px; margin-bottom: 20px; line-height: 1.6; }
+  .status-box {
+    background-color: #303134;
+    border: 1px solid #5f6368;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #bdc1c6;
+    margin-bottom: 20px;
+  }
+  .status-box strong { color: #8ab4f8; }
+  .section-card {
+    background-color: #303134;
+    border: 1px solid #3c4043;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .section-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  .section-card-header input {
+    flex: 1;
+    background-color: #202124;
+    border: 1px solid #3c4043;
+    border-radius: 6px;
+    color: #ff6b00;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+  .remove-btn {
+    background-color: #3c2a1e;
+    border: 1px solid #ff6b00;
+    color: #ff6b00;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .remove-btn:hover { background-color: #ff6b00; color: #fff; }
+  .section-card textarea {
+    width: 100%;
+    min-height: 140px;
+    background-color: #202124;
+    border: 1px solid #3c4043;
+    border-radius: 6px;
+    color: #e8eaed;
+    font-size: 13px;
+    padding: 10px 12px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.6;
+  }
+  .btn {
+    background-color: #303134;
+    border: 1px solid #5f6368;
+    color: #e8eaed;
+    padding: 10px 18px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #8ab4f8; color: #8ab4f8; }
+  .btn-primary { background-color: #ff6b00; border-color: #ff6b00; color: #fff; font-weight: bold; }
+  .btn-primary:hover { background-color: #e05e00; color: #fff; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 20px 0; }
+  .hint { font-size: 12px; color: #9aa0a6; margin-top: 4px; line-height: 1.6; }
+  .hint b { color: #f28b30; }
+  #resultMsg { margin-top: 14px; font-size: 13px; white-space: pre-wrap; }
+  #resultMsg.ok { color: #6fd095; }
+  #resultMsg.err { color: #ff6b6b; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📋 BNCP 캠프 안내 지식 관리</h1>
+  <p class="sub">
+    여기서 저장하면 AI 비서가 답변할 때 참고하는 지식(비상연락망, 캠프 생활 안내, 휴가/부임 절차 등)이 즉시 갱신됩니다. Worker 코드는 전혀 건드릴 필요 없습니다.<br>
+    섹션 제목은 <b>AI가 어떤 주제인지 이해하는 데 사용</b>되니 명확하게 적어주세요. 내용은 줄바꿈으로 자유롭게 작성하면 됩니다.
+  </p>
 
+  <div class="status-box" id="statusBox">불러오는 중...</div>
+
+  <div id="sectionsContainer"></div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="addSection()">+ 섹션 추가</button>
+    <button class="btn" onclick="loadCurrentKnowledge()">현재 저장된 내용 다시 불러오기</button>
+    <button class="btn btn-primary" onclick="saveKnowledge()">💾 저장하기</button>
+  </div>
+
+  <div id="resultMsg"></div>
+</div>
+
+<script>
+  // ⚠️ 실제 배포된 Worker 주소로 맞춰져 있습니다. 주소가 바뀌면 여기도 함께 바꿔주세요.
+  const API_BASE = 'https://odd-butterfly-b936.chogak1449.workers.dev';
+
+  // 오리엔테이션 자료(PDF)를 바탕으로 미리 채워둔 기본값입니다.
+  // 인사이동/정책변경 등으로 바뀐 내용이 있으면 수정 후 저장하세요.
+  const SEED_SECTIONS = [
+    {
+      title: '비상연락망',
+      content: `[이라크사업실장] 박영재 상무 0780-926-2336
+
+[사업관리팀] 박송호 팀장 0781-877-8755 / 박중환 차장 0780-993-6366 / 전현영 차장 0780-927-6958 / 민상규 차장 0780-926-2422 / 양우용 과장 0780-929-1436 / 이상훈 대리 0780-928-5209 / 이태환 대리 0782-317-5479
+
+[이라크지사] 양진호 부장 0780-929-0037 / 강현영 사원 0780-927-6967
+
+[경호경비팀] 이현식 팀장 0780-928-3233 / 김문현 과장 0780-928-3950 / 이현식 대리 0780-926-2399 / 배의정 대리 0780-926-9208 / 양준영 사원 0780-928-5299 / 구형석 사원 0780-926-2425
+S.O.C 종합상황실 0780-926-2400 / PSD 신청·접수 정상훈 0780-922-5111 / CCTV 권오헌 소장 0780-928-3238
+
+[공사팀] 이상재 팀장 0780-926-2417
+- 공무: 김희준 과장 0780-927-6976
+- 토목: 김진형 과장 0780-926-2310, 이종욱 과장 0780-926-2412, 박정현 과장 0780-927-6622, 이창철 차장 0780-927-6956, 원영덕 차장 0780-926-2318, 라대주 소장 0780-929-1246
+- 플랜트: 백승원 차장 0780-929-1253, 김범진 차장 0780-927-6623, 박귀덕 과장 0780-926-2368
+- 건축: 김태형 차장 0780-926-9486
+- 기계/전기: 노옥철 부장 0780-926-2329, 신종식 차장 0780-926-2358, 안창훈 차장 0780-926-2477, 맹호윤 과장 0780-926-2483
+
+[관리재경팀] 조형민 팀장 0782-780-7499
+- 운영지원(총무): 서보용 과장 0780-926-2416
+- 운영지원(캠프): 조우형 과장 0780-929-1232, 김수환 과장 0780-926-2434, 정재학 과장 0780-926-2441
+- catering: 이승호 주방장 0783-301-7205, 장선부 차장 0780-929-1254, 최승욱 차장 0781-658-8190
+- IT(한화시스템): 이병희 0780-928-3232
+- HR: 임구 과장 0780-928-5313, 유홍준 대리 0780-927-6960
+- 건설기계: 윤수용 과장 0780-927-6962
+- 자재: 허현 과장 0781-877-8736
+- HSE: 김대영 대리 0780-926-2446
+- 재경: 구희문 차장 0780-929-1250, 김경민 과장 0780-928-5257`
+    },
+    {
+      title: '캠프 시설 및 배치 안내',
+      content: `Base Camp는 현재 12,500여명 수용가능 규모이며, Catch-Up 계획에 맞춰 총 16,500여명을 수용 가능한 규모로 단계별 공사를 추진할 예정임.
+캠프 규모: 총 299동, 16,492명 수용 (HENC 520명, KOR 784명, TCN 15,188명)
+
+Zone 구성: T1/T3 Zone, T2/T4 Zone, PC Zone, Junior Zone, Korean Zone, Hanwha Zone
+Hanwha Zone 내 주요 시설: 영빈관, VIP 3동, 임원 2동, 부장 5동, 직원 5동/8동, 캠프오피스, 도서관, 식당, 전기실, 멀티룸, 극장, Screen Golf 1~3, Indoor Sports 1~3, Club House 1~3, 사우나(이발소)
+
+Hanwha Zone 요약: 숙소시설 37동 / 편의시설: Indoor Sports 1~3, Screen Golf 1~4, Club House 1~4, 도서관/이발소, 멀티룸, 사우나, 캠프오피스, 식당`
+    },
+    {
+      title: '숙소 및 개인 소모품',
+      content: `[숙소시설 - HENC Zone]
+- VIP동 3동: 임원 이상, 12실
+- 임원동 2동: VIP Guest, 16실 (Guest 8실)
+- 부장동 5동: 팀장/부장급, 55실 (각 동 휴게실 1개)
+- 직원동 13동: 차장~사원, 208실 (Guest 16실)
+
+[개인 소모품 지급기준]
+- 침구 set (900*1900*1710) 1set: Blanket/Pillow/Pillow cover/Bed cover
+- 쓰레기통 20L 1개
+- 비누 80g 1개
+- 샴푸 400g 1개 (전량 소모시 1:1 교환)
+- 수건 2개 (대형 1, 일반 2)
+- 거품타월 1개
+- 치약/칫솔 80g (칫솔·치약은 소모시 교환)
+- 옷걸이 5개
+- 휴지 70m 1개 (소모시 수시 보충)
+- 멀티탭 5m 1개 (어답터 2개)`
+    },
+    {
+      title: '직원식당 이용 안내',
+      content: `위치: 1동 (배치도 참조)
+- 조식: 평일 06:00~07:00 / 공휴일 및 금요일 07:00~08:00 (주메뉴: 밥·국·반찬4종·야채스틱 / 부메뉴: 시리얼·우유·죽)
+- 중식: 평일 11:30~12:30 / 공휴일 및 금요일 12:00~13:00 (주메뉴 동일 + 후식: 수박·메론·사과·포도·바나나 등)
+- 석식: 평일 17:30~18:30 / 공휴일 및 금요일 18:00~19:00 (주메뉴+후식 동일)
+
+※ 식당 외부로 음식물 Take-Out 절대 금지`
+    },
+    {
+      title: '부대시설 이용 안내',
+      content: `[Screen Golf] (배치도 참조, 문의: 관리재경팀 조우형 과장 0780-929-1232)
+- 1동: 임원/부장 전용 (차장 이하 사용금지), Screen Room 4개실, 그물연습타석 6개, 골프화 대여
+- 2동: 차장~사원, Screen Room 5개실, 그물연습타석 6개, 골프화 대여
+- 이용시간: 평일 18:00~21:00 / 공휴일·금·토 08:00~22:00, 이용시간 내 자율이용
+
+[Indoor Sports] (배치도 참조)
+- 1동: 임원/부장 / 2동: 차장~사원 (상시오픈, 자율이용) / 3동: 운영중지
+- 시설: 탁구대 3set, 당구대 3set, 런닝머신 6대, 바이클 3대, 벨트마사지 2대, 체중계 1개, 기타헬스기구 8종 (각 동별 동일사양)
+- 에티켓: 안전화 사용금지, 금연, 이용 후 원위치, 마지막 이용자 에어컨·전등 OFF 확인
+
+[Club House] (배치도 참조, 문의: 관리재경팀 조우형 과장 0780-929-1232)
+- 1동: 팀 단위 회식 전용 - 노래방 15인 2실 / 8인 4실, Club House Hall 36석
+- 2동/3동: 운영중지
+- 이용시간: 평일 18:00~21:00 (이용시간 준수 - 숙소소음 피해방지)
+- 예약방법: BNCP AI 비서 사이트에서 예약 당일 15시 이전 예약
+
+[도서관] (배치도 참조, 문의: 관리재경팀 조우형 과장 0780-929-1232)
+- 대상: 한화 임직원 / 도서자율 이용제
+- 대여방법: 도서 대여 관리대장 작성 후 대여 (반납대 비치), 대여기간 개인 4박 1권 (연장시 반납 후 재대여)
+- 이용시간: 평일 18:00~22:00 / 휴일·금요일 10:00~22:00
+- 도서확보: 개인 기증 캠페인 / 회사지원(월 4인당 1권, 연 3권 기준)
+
+[사우나 / 이발서비스] (배치도 참조)
+- 사우나: 한화 임직원, 금·토 08:00~21:00
+- 이발서비스: 한화 임직원, Reception Room(도서관 건물), IRAQI 이발사 1명 배치, 금요일 10:00~18:00
+- 이발 신청방법: BNCP AI 비서 사이트를 통해 사전신청 (1인당 40분 단위, 접수순 순차배정, 매주 목요일 오전까지 예약마감)
+- 주의: 이용 후 팁(금품) 지급 절대 금지
+
+[멀티룸 / 극장 / Sauna] (배치도 참조, 문의: 조우형 과장 0780-929-1232)
+- 멀티룸: 운영중지 / 극장: 수시 운영 / Sauna: 공휴일·금요일·토요일 08:00~21:00
+
+[캠프오피스] (배치도 참조)
+- 대상: 한화 임직원
+- 업무: 숙소배정, 소모품관리, 숙소 내·외부 청소, 임직원 세탁서비스, 부대시설물 관리, 하자 및 불편사항 접수
+- 이용시간: 07:00~22:00 (캠프 보스 24시간 상주, 비상사태 발생시 조기조치)
+- 소모품 1:1 교환 (침구 월1회, 개인숙소 1회)
+- 세탁서비스: 홀수일 출근 전 개인세탁망을 복도 수거함에 집하 (수거 오전 07시, 금요일이 수거일이면 7시·13시 2회), 신발은 개인세탁`
+    },
+    {
+      title: '생활수칙 및 주의사항',
+      content: `[절전] 출근 시 숙소 에어컨·전등 스위치 OFF / 부대시설(Indoor Sports, 스크린골프, 노래방) 사용 후 에어컨·전등 스위치 OFF
+[절수] 샤워 잠금 후 비누칠 하기 / 화장실 누수 상태 확인 및 점검
+[물자절약] 운동 및 기타활동 후 생수물 남기지 않기 / 숙소 소모품 사용 후 1:1 교환 / 음식물 Take-Out 금지·잔반 줄이기 / 공공기물 개인숙소 반입금지
+[반입금지 물품] 도기 및 총포류·인화성물질 등 위험물 반입금지 / 수시 불시점검`
+    },
+    {
+      title: '휴가 및 부임 절차',
+      content: `[휴가기준]
+- 정기휴가: 14일/3.5개월 (연차 1일 포함)
+- 귀임휴가: 현지근무 2개월 미만 9일 / 2개월 이상 14일
+- 휴가산정: 본국 도착일~본국 출발일
+- 휴가주기: 해외근무 3.5개월마다 (±1개월 내 조정가능)
+- 연계사용: 잔여 연차는 정기휴가 연계가능. 최소 2주 전 전자결재(휴가계) 신청 - 일반결재→팀장, 협조결재→백주원 사원. 휴가결재 시 휴가기준일 표 첨부, 매주 목요일 휴가출발
+
+[긴급 경조사시] 해당팀→관리재경팀 / 가장 빠른 항공편으로 한국도착 진행. 휴가 전자결재 및 발권관리 등은 후속 진행.
+
+[부임비 지급] 별도 신청 불필요. 발권시스템 등록정보 확인 후 관리재경팀에서 지급. 지급일: 부임한 달의 익월 재경팀 경비지급일.
+
+[부임/출장/휴가 신청절차]
+현업 팀/현장(발권관리시스템 등록) → 통합공무팀(접수/승인) → 관리재경팀 총무(항공권발권/통보) → 관리재경팀 캠프운영(숙소관리) / 경호경비팀(PSD지원) / 관리팀 HR(인사관리) / 본사지원팀
+※ 현업 팀/현장은 당사 및 협력업체 직원 부임·출장·휴가 시 통합공무팀에 최소 4주 전 업무연락 필히 통보
+※ 당사 휴가자는 전자결재 시 관리재경팀 담당자(서보용 과장) 참조에 추가
+※ 휴가자는 휴가일로부터 최소 4주 전 전자결재 완료`
+    },
+    {
+      title: '이발서비스 및 클럽하우스 예약 안내',
+      content: `[이발서비스 예약]
+- 신청방법: BNCP AI 비서 사이트를 통해 사전신청
+- 예약방식: 1인당 40분 단위 사전 예약제
+- 예약배정: 접수된 순서에 따라 순차적으로 예약시간 임의배정
+- 예약마감: 매주 목요일 오전까지 예약완료 (※ 목요일 오전이 지나면 담당자 확인 필요할 수 있음)
+- 주의사항: 이용 후 팁(금품) 지급 절대 금지
+
+[클럽하우스/라운지 예약]
+- 예약방법: BNCP AI 비서 사이트
+- 예약 당일 15시 이전 예약 (Club House 1동 기준)
+- 문의: 관리재경팀 조우형 과장 (0780-929-1232)`
+    },
+    {
+      title: 'IT / WiFi 설정 안내',
+      content: `SSID: henc / 비밀번호: Bismayah@2014
+담당: 이병희 과장 (0780-928-3232) / 부재 시(휴가 등): 조우형 과장 (0780-929-1232)
+
+[삼성갤럭시 등 - 안드로이드 OS 10 이상, iOS 13 이상]
+WIFI "henc" 클릭 → MAC 주소 유형을 "랜덤 MAC"에서 "휴대전화 MAC"으로 변경 → 비밀번호 입력 후 연결
+
+[아이폰/아이패드 - iOS]
+설정 → 개인정보보호 → 위치서비스 → 시스템서비스 → "네트워킹 및 무선" 옵션 해제`
+    },
+    {
+      title: '의료 관련',
+      content: `Clinic 위치: 배치도 참조
+담당: HSE팀 김대영 대리 (0780-926-2446, 내선 4327)`
+    }
+  ];
+
+  function sectionCardHtml(title, content) {
+    const id = 'sec_' + Math.random().toString(36).slice(2, 8);
+    return `
+      <div class="section-card" id="${id}">
+        <div class="section-card-header">
+          <input type="text" class="section-title-input" value="${title.replace(/"/g, '&quot;')}" placeholder="예: 비상연락망">
+          <button class="remove-btn" onclick="document.getElementById('${id}').remove()">삭제</button>
+        </div>
+        <textarea class="section-content-input">${content}</textarea>
+      </div>
+    `;
+  }
+
+  function renderSections(sections) {
+    const container = document.getElementById('sectionsContainer');
+    container.innerHTML = '';
+    sections.forEach(s => {
+      container.insertAdjacentHTML('beforeend', sectionCardHtml(s.title, s.content));
+    });
+  }
+
+  function addSection() {
+    document.getElementById('sectionsContainer').insertAdjacentHTML(
+      'beforeend',
+      sectionCardHtml('새 섹션', '')
+    );
+  }
+
+  function collectSectionsFromForm() {
+    const result = [];
+    document.querySelectorAll('.section-card').forEach(card => {
+      const title = card.querySelector('.section-title-input').value.trim();
+      const content = card.querySelector('.section-content-input').value.trim();
+      if (!title) return;
+      result.push({ title, content });
+    });
+    return result;
+  }
+
+  async function loadCurrentKnowledge() {
+    const statusBox = document.getElementById('statusBox');
+    statusBox.textContent = '불러오는 중...';
+    try {
+      const res = await fetch(`${API_BASE}?type=knowledge_get`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || '조회 실패');
+      if (data.sections && data.sections.length > 0) {
+        renderSections(data.sections);
+        statusBox.innerHTML = `<strong>현재 저장된 내용</strong>이 로드되었습니다. (마지막 수정: ${data.updatedAt ? new Date(data.updatedAt).toLocaleString('ko-KR') : '-'})`;
+      } else {
+        renderSections(SEED_SECTIONS);
+        statusBox.innerHTML = '<strong>아직 저장된 내용이 없습니다.</strong> 오리엔테이션 자료를 바탕으로 기본값을 채워뒀습니다. 확인 후 필요하면 수정해서 저장하세요.';
+      }
+    } catch (e) {
+      renderSections(SEED_SECTIONS);
+      statusBox.textContent = `⚠️ 현재 저장된 내용을 불러오지 못했습니다 (${e.message}). 기본값을 채워뒀습니다.`;
+    }
+  }
+
+  async function saveKnowledge() {
+    const resultMsg = document.getElementById('resultMsg');
+    const sections = collectSectionsFromForm();
+    if (sections.length === 0) {
+      resultMsg.className = 'err';
+      resultMsg.textContent = '저장할 섹션이 없습니다. 최소 1개 이상 입력해주세요.';
+      return;
+    }
+    resultMsg.className = '';
+    resultMsg.textContent = '저장 중...';
+    try {
+      const res = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'knowledge_set', sections })
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || '저장 실패');
+      resultMsg.className = 'ok';
+      resultMsg.textContent = '✅ 저장되었습니다! AI 비서가 다음 질문부터 바로 이 내용을 참고합니다.';
+    } catch (e) {
+      resultMsg.className = 'err';
+      resultMsg.textContent = `⚠️ 저장에 실패했습니다: ${e.message}`;
+    }
+  }
+
+  loadCurrentKnowledge();
+</script>
+</body>
+</html>
