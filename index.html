@@ -693,6 +693,17 @@
       padding: 10px 2px;
     }
 
+    .res-success {
+      background-color: #1c2b20;
+      border: 1px solid #2e7d4f;
+      border-radius: 8px;
+      color: #6fd095;
+      font-size: 13px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
     .auto-assign-note {
       background-color: #1c2b20;
       border: 1px solid #2e7d4f;
@@ -1441,6 +1452,21 @@
     function handleModalOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
 
     function openMenuModal() { openModal('menuModal'); renderMenu(); }
+
+    // 예약/신청 완료 후 모달 안에 인라인 메시지를 잠깐 보여주는 헬퍼
+    // containerId: 메시지를 앞에 삽입할 컨테이너 id, msg: 표시할 문자열
+    function showSuccessMsg(containerId, msg) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const existing = container.querySelector('.res-success');
+      if (existing) existing.remove();
+      const div = document.createElement('div');
+      div.className = 'res-success';
+      div.textContent = '✅ ' + msg;
+      container.prepend(div);
+      setTimeout(() => { if (div.parentNode) div.remove(); }, 5000);
+    }
+
     async function openManualModal() { openModal('manualModal'); await renderManual(); }
     function openHaircutModal() { populateHaircutDates(); renderHaircutList(); openModal('haircutModal'); }
     function openRepairModal() { renderRepairList(); openModal('repairModal'); }
@@ -1925,7 +1951,7 @@
         await apiPost({ type: 'haircut_reservation', data: { name, date, service } });
         document.getElementById('haircutForm').reset();
         await renderHaircutList();
-        alert(`예약이 접수되었습니다!\n예약 시간은 매주 목요일 오후 1시 이후 [이발서비스 예약 현황]에서 확인해주세요.`);
+        showSuccessMsg('hcListArea', '예약이 접수되었습니다! 예약 시간은 목요일 오후 1시 이후 아래 현황에서 확인해주세요.');
       } catch (e) {
         alert(`예약에 실패했습니다: ${e.message}`);
       }
@@ -2041,7 +2067,7 @@
         await apiPost({ type: 'repair_request', data: { applicant, roomLocation: room, repairType: type, description, contact } });
         document.getElementById('repairForm').reset();
         await renderRepairList();
-        alert('수리요청이 접수되었습니다.');
+        showSuccessMsg('repairPendingArea', '수리요청이 접수되었습니다. 아래 목록에서 확인하세요.');
       } catch (e) {
         alert(`접수에 실패했습니다: ${e.message}`);
       }
@@ -2215,7 +2241,7 @@
 
         await renderCalendar(true);
         await renderClubhouseDateList(date);
-        alert('클럽하우스/라운지 예약이 완료되었습니다.');
+        showSuccessMsg('chDateListArea', '클럽하우스/라운지 예약이 완료되었습니다. 아래 목록에서 확인하세요.');
       } catch (e) {
         alert(`예약에 실패했습니다: ${e.message}`);
       }
