@@ -1825,12 +1825,29 @@
 
       CURRENT_MENU_DAYS.forEach((day, i) => {
         const b = document.createElement('button');
-        b.className = 'tab-btn' + (i === 0 ? ' active' : '');
+        b.className = 'tab-btn';
         b.textContent = day;
         b.onclick = () => selectMenuDay(day, b);
         tabBar.appendChild(b);
       });
-      selectMenuDay(CURRENT_MENU_DAYS[0]);
+
+      // 오늘 날짜와 가장 가까운 탭을 자동 선택 (오늘 포함 이후 첫 번째 탭, 없으면 마지막 탭)
+      const todayStr = (() => {
+        const d = new Date();
+        return `${d.getMonth() + 1}/${d.getDate()}`;
+      })();
+      let autoTab = CURRENT_MENU_DAYS[CURRENT_MENU_DAYS.length - 1]; // 기본: 마지막 탭
+      for (const day of CURRENT_MENU_DAYS) {
+        const m = day.match(/\((\d+)\/(\d+)/);
+        if (m) {
+          const [, mo, dd] = m.map(Number);
+          const dayStr = `${mo}/${dd}`;
+          if (dayStr >= todayStr) { autoTab = day; break; }
+        }
+      }
+      const autoBtn = [...tabBar.querySelectorAll('.tab-btn')].find(b => b.textContent === autoTab);
+      if (autoBtn) autoBtn.classList.add('active');
+      selectMenuDay(autoTab);
     }
 
     function selectMenuDay(day, btn) {
