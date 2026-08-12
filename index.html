@@ -2200,7 +2200,7 @@
       try {
         await apiPost({ type: 'clubhouse_reservation_cancel', id });
         await renderCalendar(true);
-        if (chSelectedDateKey) await renderClubhouseDateList(chSelectedDateKey);
+        if (chSelectedDateKey) await selectCalendarDate(chSelectedDateKey);
       } catch (e) {
         alert(`취소에 실패했습니다: ${e.message}`);
       }
@@ -2239,8 +2239,10 @@
         document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(p => p.classList.add('checked'));
         document.getElementById('chDate').value = date;
 
+        // 달력을 새로 그린 뒤, 선택했던 날짜를 다시 활성화하고 목록을 바로 표시합니다.
         await renderCalendar(true);
-        await renderClubhouseDateList(date);
+        // renderCalendar가 끝나면 해당 날짜 셀을 다시 클릭 상태로 만들어야 목록이 보입니다.
+        await selectCalendarDate(date);
         showSuccessMsg('chDateListArea', '클럽하우스/라운지 예약이 완료되었습니다. 아래 목록에서 확인하세요.');
       } catch (e) {
         alert(`예약에 실패했습니다: ${e.message}`);
