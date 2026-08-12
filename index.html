@@ -1823,9 +1823,23 @@
       CURRENT_MENU = data.menu;
       CURRENT_MENU_DAYS = Object.keys(CURRENT_MENU);
 
+      // 탭 생성 — 이전 주(3일)와 이번 주(7일) 사이에 구분선 추가
+      // previous 마지막 3일과 current 7일을 구분하기 위해
+      // API 응답의 prevDays 정보를 활용 (없으면 첫 3개를 이전 주로 가정하지 않고 그냥 나열)
+      const prevDayCount = data.prevDayCount || 0;
       CURRENT_MENU_DAYS.forEach((day, i) => {
+        // 이전 주에서 이번 주로 넘어가는 경계에 구분선 추가
+        if (prevDayCount > 0 && i === prevDayCount) {
+          const sep = document.createElement('span');
+          sep.style.cssText = 'width:1px;background:#3c4043;margin:4px 2px;flex-shrink:0;';
+          tabBar.appendChild(sep);
+        }
         const b = document.createElement('button');
         b.className = 'tab-btn';
+        if (i < prevDayCount) {
+          b.style.opacity = '0.65'; // 이전 주 탭은 약간 흐리게
+          b.title = '지난 주 메뉴';
+        }
         b.textContent = day;
         b.onclick = () => selectMenuDay(day, b);
         tabBar.appendChild(b);
@@ -1836,7 +1850,7 @@
         const d = new Date();
         return `${d.getMonth() + 1}/${d.getDate()}`;
       })();
-      let autoTab = CURRENT_MENU_DAYS[CURRENT_MENU_DAYS.length - 1]; // 기본: 마지막 탭
+      let autoTab = CURRENT_MENU_DAYS[CURRENT_MENU_DAYS.length - 1];
       for (const day of CURRENT_MENU_DAYS) {
         const m = day.match(/\((\d+)\/(\d+)/);
         if (m) {
