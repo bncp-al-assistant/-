@@ -1440,7 +1440,7 @@
     function handleModalOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
 
     function openMenuModal() { openModal('menuModal'); renderMenu(); }
-    async function openKnowledgeModal() { openModal('knowledgeModal'); await renderKnowledge(); }
+    async function openKnowledgeModal() { CURRENT_KNOWLEDGE = null; openModal('knowledgeModal'); await renderKnowledge(); }
 
     // 예약/신청 완료 후 모달 안에 인라인 메시지를 잠깐 보여주는 헬퍼
     // containerId: 메시지를 앞에 삽입할 컨테이너 id, msg: 표시할 문자열
@@ -1459,6 +1459,21 @@
     async function openManualModal() { openModal('manualModal'); await renderManual(); }
     function openHaircutModal() { populateHaircutDates(); renderHaircutList(); openModal('haircutModal'); }
     function openRepairModal() { renderRepairList(); openModal('repairModal'); }
+
+    // knowledge:sections를 필요할 때 한 번만 로드합니다 (repairModal, knowledge 탭 공용)
+    async function ensureKnowledgeLoaded() {
+      if (CURRENT_KNOWLEDGE !== null) return; // 이미 로드됨
+      try {
+        const data = await apiGet({ type: 'knowledge_get' });
+        if (data.sections && data.sections.length > 0) {
+          CURRENT_KNOWLEDGE = data.sections;
+        } else {
+          CURRENT_KNOWLEDGE = []; // 빈 배열로 초기화해서 재시도 방지
+        }
+      } catch (e) {
+        CURRENT_KNOWLEDGE = [];
+      }
+    }
     async function openClubhouseModal() {
       openModal('clubhouseModal');
       await renderCalendar();
@@ -1725,20 +1740,18 @@
       tabBar.innerHTML = '';
       content.innerHTML = '<p class="res-empty">불러오는 중...</p>';
 
-      let data;
       try {
-        data = await apiGet({ type: 'knowledge_get' });
+        await ensureKnowledgeLoaded();
       } catch (e) {
         content.innerHTML = `<p class="res-empty">⚠️ 캠프 안내를 불러오지 못했습니다. (${e.message})</p>`;
         return;
       }
 
-      if (!data.sections || data.sections.length === 0) {
+      if (!CURRENT_KNOWLEDGE || CURRENT_KNOWLEDGE.length === 0) {
         content.innerHTML = '<p class="res-empty">등록된 캠프 안내 내용이 없습니다. 관리자에게 문의해주세요.</p>';
         return;
       }
 
-      CURRENT_KNOWLEDGE = data.sections;
       CURRENT_KNOWLEDGE.forEach((section, i) => {
         const b = document.createElement('button');
         b.className = 'tab-btn' + (i === 0 ? ' active' : '');
@@ -2079,6 +2092,9 @@
       const completedCount = document.getElementById('repairCompletedCount');
       pendingArea.innerHTML = '<p class="res-empty">불러오는 중...</p>';
       completedArea.innerHTML = '<p class="res-empty">불러오는 중...</p>';
+
+      // 연락처 매칭을 위해 knowledge 데이터 먼저 확보
+      await ensureKnowledgeLoaded();
 
       let list;
       try {
