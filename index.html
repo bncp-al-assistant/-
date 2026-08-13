@@ -998,7 +998,7 @@
 
   <header>
     <a onclick="openManualModal()">사용 매뉴얼</a>
-    <a onclick="openKnowledgeModal()">캠프 생활 안내</a>
+    <a onclick="openKnowledgeModal()">캠프 생활 및 업무 공지 안내</a>
     <a onclick="openMenuModal()">주간 식단표</a>
     <a onclick="openHaircutModal()">이발서비스 예약</a>
     <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
@@ -1019,7 +1019,7 @@
     <div class="btn-group">
       <button class="btn btn-primary" onclick="handleSearch()">AI 답변 요청</button>
       <button class="btn" onclick="openManualModal()">📖 BNCP AI Assistant 매뉴얼</button>
-      <button class="btn" onclick="openKnowledgeModal()">🏕️ 캠프 생활 안내</button>
+      <button class="btn" onclick="openKnowledgeModal()">🏕️ 캠프 생활 및 업무 공지 안내</button>
       <button class="btn" onclick="openMenuModal()">주간 식단표</button>
       <button class="btn" onclick="openHaircutModal()">이발서비스 예약</button>
       <button class="btn" onclick="openClubhouseModal()">클럽하우스/라운지 예약</button>
@@ -1050,11 +1050,11 @@
     </div>
   </div>
 
-  <!-- 1-1. 캠프 생활 안내 모달 (knowledge-admin.html 내용 기반) -->
+  <!-- 1-1. 캠프 생활 및 업무 공지 안내 모달 (knowledge-admin.html 내용 기반) -->
   <div class="modal-overlay" id="knowledgeModal" onclick="handleModalOverlayClick(event, 'knowledgeModal')">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>🏕️ 캠프 생활 안내</h2>
+        <h2>🏕️ 캠프 생활 및 업무 공지 안내</h2>
         <button class="close-btn" onclick="closeModal('knowledgeModal')">&times;</button>
       </div>
       <div class="tab-bar" id="knowledgeTabBar"></div>
@@ -1327,7 +1327,7 @@
     <div class="footer-bottom">
       <div class="footer-links">
         <a onclick="openManualModal()">사용 매뉴얼</a>
-        <a onclick="openKnowledgeModal()">캠프 생활 안내</a>
+        <a onclick="openKnowledgeModal()">캠프 생활 및 업무 공지 안내</a>
         <a onclick="openMenuModal()">식단표</a>
         <a onclick="openHaircutModal()">이발서비스 예약</a>
         <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
@@ -1630,7 +1630,7 @@
               <table style="width:100%; font-size:12.5px; border-collapse:collapse;">
                 <tr style="border-bottom:1px solid #3c4043;"><td style="padding:5px 6px; color:#8ab4f8; font-weight:600;">분야</td><td style="padding:5px 6px; color:#9aa0a6;">질문 예시</td></tr>
                 <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">주간 식단표</td><td style="padding:5px 6px; color:#bdc1c6;">"오늘 점심 뭐야?"<br>"이번 주 금요일 석식 알려줘"</td></tr>
-                <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">캠프 생활 안내</td><td style="padding:5px 6px; color:#bdc1c6;">"이발서비스 신청 방법은?"<br>"도서관 몇 시까지 해?"<br>"와이파이 비번이 뭐야?"</td></tr>
+                <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">캠프 생활 및 업무 공지 안내</td><td style="padding:5px 6px; color:#bdc1c6;">"이발서비스 신청 방법은?"<br>"도서관 몇 시까지 해?"<br>"와이파이 비번이 뭐야?"</td></tr>
                 <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">비상연락망 / 담당자</td><td style="padding:5px 6px; color:#bdc1c6;">"홍길동 전화번호가 뭐야?"<br>"HSE팀 연락처 알려줘"</td></tr>
                 <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">숙소 위치 / 부임일</td><td style="padding:5px 6px; color:#bdc1c6;">"김한화 방이 어디야?"<br>"HM-29동 4호에 누가 살아?"</td></tr>
                 <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">휴가·부임 절차</td><td style="padding:5px 6px; color:#bdc1c6;">"휴가 신청 언제까지?"<br>"부임비는 언제 나와?"</td></tr>
@@ -1730,7 +1730,7 @@
     }
 
     /* =========================================================
-       캠프 생활 안내 — Worker(KV)에서 knowledge:sections를 불러와 탭으로 표시
+       캠프 생활 및 업무 공지 안내 — Worker(KV)에서 knowledge:sections를 불러와 탭으로 표시
        ========================================================= */
     let CURRENT_KNOWLEDGE = null;
 
