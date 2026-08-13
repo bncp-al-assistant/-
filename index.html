@@ -268,20 +268,20 @@
 
     .tab-bar {
       display: flex;
+      flex-wrap: wrap;
       background-color: #202124;
-      overflow-x: auto;
       border-bottom: 1px solid #3c4043;
-      scrollbar-width: thin;
     }
 
     .tab-btn {
-      flex: 1;
-      min-width: 100px;
-      padding: 12px 10px;
+      flex: 0 0 auto;
+      min-width: 0;
+      max-width: 100%;
+      padding: 10px 14px;
       background: none;
       border: none;
       color: #9aa0a6;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 500;
       cursor: pointer;
       white-space: nowrap;
