@@ -1999,7 +1999,22 @@
         return;
       }
 
+      // 날짜별로 그룹화해서 같은 날짜 안에서 submittedAt 순으로 번호를 매깁니다
+      const byDate = {};
+      list.forEach(r => { (byDate[r.date] = byDate[r.date] || []).push(r); });
+      Object.values(byDate).forEach(group =>
+        group.sort((a, b) => (a.submittedAt || '').localeCompare(b.submittedAt || ''))
+      );
       list.sort((a, b) => (a.date + '_' + (a.time || '99:99')).localeCompare(b.date + '_' + (b.time || '99:99')));
+
+      // 날짜별 접수 순서 번호를 부여합니다
+      const dateOrderMap = {};
+      list.forEach(r => {
+        if (!dateOrderMap[r.date]) dateOrderMap[r.date] = 0;
+        dateOrderMap[r.date]++;
+        r._order = dateOrderMap[r.date];
+      });
+
       area.innerHTML = '';
       list.forEach(r => {
         const item = document.createElement('div');
@@ -2009,7 +2024,7 @@
           : '<span style="color:#9aa0a6;">시간 미정 (목요일 오후 1시 이후 확인 가능)</span>';
         item.innerHTML = `
           <div class="res-info">
-            <strong>${formatDateKRFromKey(r.date)}</strong> · ${timeDisplay}<br>
+            <strong>${r._order}. ${formatDateKRFromKey(r.date)}</strong> · ${timeDisplay}<br>
             <span class="res-sub">${r.name} · ${r.service}</span><br>
             <span class="res-sub">신청일시: ${formatDateTimeKR(r.submittedAt)}</span>
           </div>
