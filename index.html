@@ -1104,10 +1104,9 @@
           </div>
 
           <div class="form-group">
-            <label for="hcDate">희망 날짜 <span style="color:#9aa0a6; font-weight:400;">(금요일만 예약 가능)</span></label>
-            <select id="hcDate" class="form-control" required>
-              <option value="">선택해주세요</option>
-            </select>
+            <label for="hcDate">예약 날짜</label>
+            <div id="hcDateDisplay" class="form-control" style="background:#303134; cursor:default; color:#e8eaed;"></div>
+            <input type="hidden" id="hcDate">
           </div>
 
           <div class="form-group">
@@ -1148,7 +1147,8 @@
         <form id="repairForm" onsubmit="handleRepairSubmit(event)">
           <div class="form-group">
             <label for="rpApplicant">신청자</label>
-            <input type="text" id="rpApplicant" class="form-control" placeholder="예: 홍길동" required>
+            <input type="text" id="rpApplicant" class="form-control" placeholder="예: 홍길동" required oninput="lookupApplicantContact()">
+            <div id="rpContactHint" style="font-size:12px; color:#8ab4f8; margin-top:4px; min-height:18px;"></div>
           </div>
 
           <div class="form-group">
@@ -1937,16 +1937,44 @@
     }
 
     function populateHaircutDates() {
-      const sel = document.getElementById('hcDate');
-      const prev = sel.value;
-      sel.innerHTML = '<option value="">선택해주세요</option>';
-      upcomingFridays(8).forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = dateKey(d);
-        opt.textContent = formatDateKR(d);
-        sel.appendChild(opt);
-      });
-      if (prev) sel.value = prev;
+      // 이발서비스 예약은 이번 주 금요일 하나로 고정합니다.
+      // 접수기간(토~목 오후1시) 중이면 이번 주 금요일, 마감 이후면 다음 주 금요일을 표시합니다.
+      const now = new Date();
+      const todayUTC = now.getTime() + 3 * 60 * 60 * 1000; // 바그다드 UTC+3
+      const baghdadNow = new Date(todayUTC);
+      const dayOfWeek = baghdadNow.getUTCDay(); // 0=일, 5=금, 6=토
+
+      // 이번 주 금요일 계산 (바그다드 기준)
+      const daysUntilFriday = (5 - dayOfWeek + 7) % 7;
+      const thisFriday = new Date(Date.UTC(
+        baghdadNow.getUTCFullYear(),
+        baghdadNow.getUTCMonth(),
+        baghdadNow.getUTCDate() + daysUntilFriday
+      ));
+
+      // 목요일 오후 1시 이후이면 이미 마감 → 다음 주 금요일로
+      const isThursdayAfternoon = dayOfWeek === 4 && baghdadNow.getUTCHours() >= 13;
+      const isFridayOrLater = dayOfWeek === 5 || dayOfWeek === 6;
+      const showNextWeek = isThursdayAfternoon || isFridayOrLater;
+
+      const targetFriday = showNextWeek
+        ? new Date(thisFriday.getTime() + 7 * 24 * 60 * 60 * 1000)
+        : thisFriday;
+
+      const dateStr = dateKey(targetFriday);
+      const display = formatDateKR(targetFriday);
+
+      document.getElementById('hcDate').value = dateStr;
+      const displayEl = document.getElementById('hcDateDisplay');
+      if (displayEl) {
+        displayEl.textContent = display + ' (금요일)';
+        if (showNextWeek) {
+          displayEl.textContent += ' — 이번 주 접수가 마감되어 다음 주로 설정됩니다.';
+          displayEl.style.color = '#f28b30';
+        } else {
+          displayEl.style.color = '#e8eaed';
+        }
+      }
     }
 
     async function getHaircutReservations() {
@@ -2053,9 +2081,6 @@
       completedCount.textContent = completed.length;
 
       // ---- 접수 현황 (바로 표시) ----
-      // 수리요청 담당자 연락처 — 비상연락망 지식에서 추출 (캐시)
-      const repairContact = getRepairContact();
-
       if (pending.length === 0) {
         pendingArea.innerHTML = '<p class="res-empty">접수 중인 수리요청이 없습니다.</p>';
       } else {
@@ -2063,12 +2088,14 @@
         pending.forEach(r => {
           const item = document.createElement('div');
           item.className = 'res-item';
+          // 저장된 contact가 없으면 실시간으로 비상연락망에서 다시 조회
+          const phone = r.contact || lookupContactByName(r.applicant) || '';
           item.innerHTML = `
             <div class="res-info">
               <strong>${r.roomLocation}</strong><br>
-              <span class="res-sub">${r.applicant} · ${r.description}</span><br>
+              <span class="res-sub">${r.applicant}${phone ? ` · <span style="color:#8ab4f8;">${phone}</span>` : ''}</span><br>
+              <span class="res-sub">${r.description}</span><br>
               <span class="res-sub">신청일시: ${formatDateTimeKR(r.submittedAt)}</span>
-              ${repairContact ? `<span class="res-sub" style="color:#f28b30;">📞 수리 담당: ${repairContact}</span>` : ''}
             </div>
             <div class="res-actions">
               <button type="button" class="res-complete-btn" onclick="completeRepairRequest('${r.id}')">완료 처리</button>
@@ -2079,18 +2106,20 @@
         });
       }
 
-      // ---- 완료 현황 (클릭해서 펼쳐야 보임) ----
+      // ---- 완료 현황 ----
       if (completed.length === 0) {
         completedArea.innerHTML = '<p class="res-empty">완료된 수리요청이 없습니다.</p>';
       } else {
         completedArea.innerHTML = '';
         completed.forEach(r => {
+          const phone = r.contact || lookupContactByName(r.applicant) || '';
           const item = document.createElement('div');
           item.className = 'res-item';
           item.innerHTML = `
             <div class="res-info">
               <strong>${r.roomLocation}</strong> <span class="res-status-badge">완료</span><br>
-              <span class="res-sub">${r.applicant} · ${r.description}</span><br>
+              <span class="res-sub">${r.applicant}${phone ? ` · <span style="color:#8ab4f8;">${phone}</span>` : ''}</span><br>
+              <span class="res-sub">${r.description}</span><br>
               <span class="res-sub">신청일시: ${formatDateTimeKR(r.submittedAt)}${r.completedAt ? ` · 완료일시: ${formatDateTimeKR(r.completedAt)}` : ''}</span>
             </div>
           `;
@@ -2099,18 +2128,31 @@
       }
     }
 
-    // 비상연락망 지식(knowledge:sections)에서 수리요청 담당자 연락처를 추출합니다.
-    // "김수환 과장 0780-926-2434" 형태로 반환합니다.
-    function getRepairContact() {
+    // 비상연락망 지식에서 이름으로 전화번호를 조회합니다.
+    // 예: "홍길동" → "0780-926-2434"
+    function lookupContactByName(name) {
+      if (!name || name.trim().length < 2) return null;
       try {
-        if (!CURRENT_KNOWLEDGE) return '김수환 과장 · 0780-926-2434';
-        const section = CURRENT_KNOWLEDGE.find(s => s.title === '비상연락망' || s.content.includes('김수환'));
-        if (!section) return '김수환 과장 · 0780-926-2434';
-        const match = section.content.match(/김수환[^\d]*(\d[\d\-]+)/);
-        return match ? `김수환 과장 · ${match[1]}` : '김수환 과장 · 0780-926-2434';
+        const allSections = CURRENT_KNOWLEDGE || [];
+        const allText = allSections.map(s => s.content).join('\n');
+        // "이름 0780-xxx" 또는 "이름 과장 0780-xxx" 패턴을 찾습니다
+        const trimmed = name.trim();
+        // 성+이름 또는 이름만으로 검색 (2~3자)
+        const escapedName = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedName + '[^\\d\\n]{0,10}(\\d[\\d\\-]{9,13})', '');
+        const match = allText.match(regex);
+        return match ? match[1] : null;
       } catch (e) {
-        return '김수환 과장 · 0780-926-2434';
+        return null;
       }
+    }
+
+    // 신청자 이름 입력 시 비상연락망에서 연락처를 자동으로 찾아 힌트로 표시합니다.
+    function lookupApplicantContact() {
+      const name = document.getElementById('rpApplicant').value.trim();
+      const hint = document.getElementById('rpContactHint');
+      const phone = lookupContactByName(name);
+      hint.textContent = phone ? `📞 비상연락망 매칭: ${phone}` : '';
     }
 
     async function cancelRepairRequest(id) {
@@ -2144,9 +2186,13 @@
         return;
       }
 
+      // 비상연락망에서 신청자 연락처 자동 조회
+      const contact = lookupContactByName(applicant) || '';
+
       try {
-        await apiPost({ type: 'repair_request', data: { applicant, roomLocation: room, description } });
+        await apiPost({ type: 'repair_request', data: { applicant, roomLocation: room, description, contact } });
         document.getElementById('repairForm').reset();
+        document.getElementById('rpContactHint').textContent = '';
         await renderRepairList();
         showSuccessMsg('repairPendingArea', '수리요청이 접수되었습니다. 아래 목록에서 확인하세요.');
       } catch (e) {
