@@ -995,7 +995,7 @@
 
   <header>
     <a onclick="openManualModal()">사용 매뉴얼</a>
-    <a onclick="openSitemapModal()">캠프 위치도</a>
+    <a onclick="openKnowledgeModal()">캠프 생활 안내</a>
     <a onclick="openMenuModal()">주간 식단표</a>
     <a onclick="openHaircutModal()">이발서비스 예약</a>
     <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
@@ -1016,7 +1016,7 @@
     <div class="btn-group">
       <button class="btn btn-primary" onclick="handleSearch()">AI 답변 요청</button>
       <button class="btn" onclick="openManualModal()">📖 BNCP AI Assistant 매뉴얼</button>
-      <button class="btn" onclick="openSitemapModal()">🗺️ 캠프 위치도</button>
+      <button class="btn" onclick="openKnowledgeModal()">🏕️ 캠프 생활 안내</button>
       <button class="btn" onclick="openMenuModal()">주간 식단표</button>
       <button class="btn" onclick="openHaircutModal()">이발서비스 예약</button>
       <button class="btn" onclick="openClubhouseModal()">클럽하우스/라운지 예약</button>
@@ -1047,6 +1047,20 @@
     </div>
   </div>
 
+  <!-- 1-1. 캠프 생활 안내 모달 (knowledge-admin.html 내용 기반) -->
+  <div class="modal-overlay" id="knowledgeModal" onclick="handleModalOverlayClick(event, 'knowledgeModal')">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🏕️ 캠프 생활 안내</h2>
+        <button class="close-btn" onclick="closeModal('knowledgeModal')">&times;</button>
+      </div>
+      <div class="tab-bar" id="knowledgeTabBar"></div>
+      <div class="modal-body">
+        <div id="knowledgeContent"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- 2. BNCP AI Assistant 사용 매뉴얼 모달 -->
   <div class="modal-overlay" id="manualModal" onclick="handleModalOverlayClick(event, 'manualModal')">
     <div class="modal-content">
@@ -1057,23 +1071,6 @@
       <div class="tab-bar" id="manualTabBar"></div>
       <div class="modal-body">
         <div id="manualContent"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2-1. 캠프 위치도 모달 -->
-  <div class="modal-overlay" id="sitemapModal" onclick="handleModalOverlayClick(event, 'sitemapModal')">
-    <div class="modal-content" style="max-width: 1000px;">
-      <div class="modal-header">
-        <h2>🗺️ 캠프 위치도</h2>
-        <button class="close-btn" onclick="closeModal('sitemapModal')">&times;</button>
-      </div>
-      <div class="tab-bar">
-        <button class="tab-btn active" onclick="showSitemapTab('full', this)">캠프 전체 시설물 위치</button>
-        <button class="tab-btn" onclick="showSitemapTab('henc', this)">HENC 시설물 위치</button>
-      </div>
-      <div class="modal-body">
-        <div id="sitemapContent" style="text-align:center;"></div>
       </div>
     </div>
   </div>
@@ -1243,6 +1240,9 @@
 
             <div id="chDateDetailArea" style="display:none;">
               <h3 id="chDetailDateLabel" class="ch-detail-date-label"></h3>
+              <div id="chDeadlineNotice" style="display:none;" class="notice-box" style="margin-bottom:12px;">
+                ⛔ 오늘 예약 마감 시간(오후 3시)이 지났습니다. 내일 이후 날짜를 선택해주세요.
+              </div>
 
               <div style="margin-bottom: 16px;">
                 <label class="ch-section-label">📋 이 날짜의 예약 현황</label>
@@ -1339,7 +1339,7 @@
     <div class="footer-bottom">
       <div class="footer-links">
         <a onclick="openManualModal()">사용 매뉴얼</a>
-        <a onclick="openSitemapModal()">캠프 위치도</a>
+        <a onclick="openKnowledgeModal()">캠프 생활 안내</a>
         <a onclick="openMenuModal()">식단표</a>
         <a onclick="openHaircutModal()">이발서비스 예약</a>
         <a onclick="openClubhouseModal()">클럽하우스/라운지 예약</a>
@@ -1452,6 +1452,7 @@
     function handleModalOverlayClick(e, id) { if (e.target.id === id) closeModal(id); }
 
     function openMenuModal() { openModal('menuModal'); renderMenu(); }
+    async function openKnowledgeModal() { openModal('knowledgeModal'); await renderKnowledge(); }
 
     // 예약/신청 완료 후 모달 안에 인라인 메시지를 잠깐 보여주는 헬퍼
     // containerId: 메시지를 앞에 삽입할 컨테이너 id, msg: 표시할 문자열
@@ -1473,7 +1474,7 @@
     async function openClubhouseModal() {
       openModal('clubhouseModal');
       await renderCalendar();
-      await selectCalendarDate(dateKey(todayStart()));
+      await selectCalendarDate(dateKey(todayStart()), true);
     }
 
     /* =========================================================
@@ -1618,7 +1619,6 @@
                 <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">이발서비스 예약</td><td style="padding:5px 6px; color:#bdc1c6;">매주 금요일 예약 (토~목 오후 1시까지)</td></tr>
                 <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">클럽하우스/라운지</td><td style="padding:5px 6px; color:#bdc1c6;">회식·행사 공간 예약 및 취소</td></tr>
                 <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">숙소 수리요청</td><td style="padding:5px 6px; color:#bdc1c6;">시설 하자 접수 및 처리 현황</td></tr>
-                <tr style="border-bottom:1px solid #2c2d30;"><td style="padding:5px 6px; color:#e8eaed;">캠프 위치도</td><td style="padding:5px 6px; color:#bdc1c6;">전체 시설물 배치도 / HENC 구역</td></tr>
                 <tr><td style="padding:5px 6px; color:#e8eaed;">사용 매뉴얼</td><td style="padding:5px 6px; color:#bdc1c6;">기능 안내 및 FAQ</td></tr>
               </table>
             </div>
@@ -1727,8 +1727,54 @@
     }
 
     /* =========================================================
-       AI 검색창 (간단 키워드 응답)
+       캠프 생활 안내 — Worker(KV)에서 knowledge:sections를 불러와 탭으로 표시
        ========================================================= */
+    let CURRENT_KNOWLEDGE = null;
+
+    async function renderKnowledge() {
+      const tabBar = document.getElementById('knowledgeTabBar');
+      const content = document.getElementById('knowledgeContent');
+      tabBar.innerHTML = '';
+      content.innerHTML = '<p class="res-empty">불러오는 중...</p>';
+
+      let data;
+      try {
+        data = await apiGet({ type: 'knowledge_get' });
+      } catch (e) {
+        content.innerHTML = `<p class="res-empty">⚠️ 캠프 안내를 불러오지 못했습니다. (${e.message})</p>`;
+        return;
+      }
+
+      if (!data.sections || data.sections.length === 0) {
+        content.innerHTML = '<p class="res-empty">등록된 캠프 안내 내용이 없습니다. 관리자에게 문의해주세요.</p>';
+        return;
+      }
+
+      CURRENT_KNOWLEDGE = data.sections;
+      CURRENT_KNOWLEDGE.forEach((section, i) => {
+        const b = document.createElement('button');
+        b.className = 'tab-btn' + (i === 0 ? ' active' : '');
+        b.textContent = section.title;
+        b.onclick = () => selectKnowledgeTab(section.title, b);
+        tabBar.appendChild(b);
+      });
+      selectKnowledgeTab(CURRENT_KNOWLEDGE[0].title);
+    }
+
+    function selectKnowledgeTab(title, btn) {
+      if (btn) {
+        document.querySelectorAll('#knowledgeTabBar .tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const section = CURRENT_KNOWLEDGE.find(s => s.title === title);
+      const content = document.getElementById('knowledgeContent');
+      content.innerHTML = '';
+      const card = document.createElement('div');
+      card.className = 'info-card manual-render';
+      card.innerHTML = section ? renderManualText(section.content) : '';
+      content.appendChild(card);
+    }
+
     /* =========================================================
        AI 대화 (멀티턴) — 예약 전 "이대로 진행할까요?" 확인을 받으려면
        AI가 이전에 뭐라고 답했는지 기억해야 하므로, 대화 기록을 유지해서
@@ -2181,14 +2227,35 @@
       }
     }
 
-    async function selectCalendarDate(key) {
+    async function selectCalendarDate(key, skipCalendarRender) {
       chSelectedDateKey = key;
-      await renderCalendar(true);
+      if (!skipCalendarRender) await renderCalendar(true);
 
       document.getElementById('chCalendarHint').style.display = 'none';
       document.getElementById('chDateDetailArea').style.display = 'block';
       document.getElementById('chDetailDateLabel').textContent = formatDateKRFromKey(key);
       document.getElementById('chDate').value = key;
+
+      // 오후 3시(바그다드 UTC+3) 마감 체크: 선택한 날짜가 오늘이고 현재 시각이 오후 3시 이후면 마감 안내
+      const nowBaghdad = new Date(Date.now() + 3 * 60 * 60 * 1000); // UTC+3
+      const todayKey = dateKey(todayStart());
+      const isPastDeadline = key === todayKey && nowBaghdad.getUTCHours() >= 15;
+
+      const notice = document.getElementById('chDeadlineNotice');
+      const form = document.getElementById('clubhouseForm');
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      if (isPastDeadline) {
+        notice.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.4';
+        submitBtn.title = '오늘은 오후 3시 이후 예약이 마감되었습니다.';
+      } else {
+        notice.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
+        submitBtn.title = '';
+      }
 
       await renderClubhouseDateList(key);
     }
@@ -2231,7 +2298,7 @@
       try {
         await apiPost({ type: 'clubhouse_reservation_cancel', id });
         await renderCalendar(true);
-        if (chSelectedDateKey) await selectCalendarDate(chSelectedDateKey);
+        if (chSelectedDateKey) await selectCalendarDate(chSelectedDateKey, true);
       } catch (e) {
         alert(`취소에 실패했습니다: ${e.message}`);
       }
@@ -2270,10 +2337,9 @@
         document.querySelectorAll('#chItemsGroup .checkbox-pill').forEach(p => p.classList.add('checked'));
         document.getElementById('chDate').value = date;
 
-        // 달력을 새로 그린 뒤, 선택했던 날짜를 다시 활성화하고 목록을 바로 표시합니다.
+        // 달력 한 번만 다시 그리고, 선택 날짜 목록도 한 번에 갱신합니다 (skipCalendarRender=true).
         await renderCalendar(true);
-        // renderCalendar가 끝나면 해당 날짜 셀을 다시 클릭 상태로 만들어야 목록이 보입니다.
-        await selectCalendarDate(date);
+        await selectCalendarDate(date, true);
         showSuccessMsg('chDateListArea', '클럽하우스/라운지 예약이 완료되었습니다. 아래 목록에서 확인하세요.');
       } catch (e) {
         alert(`예약에 실패했습니다: ${e.message}`);
